@@ -215,6 +215,30 @@ service cloud.firestore {
         data.createdAt is timestamp;
     }
 
+    function isValidProjectMilestone(data) {
+      return data.keys().hasAll([
+          'projectId', 'projectSlug', 'authorUid', 'authorName', 'authorHandle',
+          'kind', 'versionTag', 'title', 'summary', 'externalUrl', 'occurredAtIso', 'createdAt'
+        ]) &&
+        data.keys().hasOnly([
+          'projectId', 'projectSlug', 'authorUid', 'authorName', 'authorHandle',
+          'kind', 'versionTag', 'title', 'summary', 'externalUrl', 'occurredAtIso', 'createdAt'
+        ]) &&
+        isValidId(data.projectId) &&
+        isValidBoundedString(data.projectSlug, 2, 120) &&
+        isValidId(data.authorUid) &&
+        isValidBoundedString(data.authorName, 1, 100) &&
+        isValidBoundedString(data.authorHandle, 0, 80) &&
+        data.kind in ['release', 'launch', 'feature', 'update', 'fix'] &&
+        isValidBoundedString(data.versionTag, 0, 40) &&
+        isValidBoundedString(data.title, 3, 140) &&
+        isValidBoundedString(data.summary, 0, 800) &&
+        isValidOptionalUrl(data.externalUrl) &&
+        isValidBoundedString(data.occurredAtIso, 10, 40) &&
+        data.occurredAtIso.matches('^\\d{4}-\\d{2}-\\d{2}.*$') &&
+        data.createdAt is timestamp;
+    }
+
     match /test/connection {
       allow get: if true;
     }
@@ -406,6 +430,26 @@ service cloud.firestore {
       allow delete: if isVerifiedUser() &&
         isValidId(activityId) &&
         ((existing().actorUid == request.auth.uid && existing().type in ['like', 'bookmark']) || isAdmin());
+    }
+
+    match /projectMilestones/{milestoneId} {
+      allow get: if isValidId(milestoneId);
+      allow list: if true;
+      allow create: if isVerifiedUser() &&
+        isValidId(milestoneId) &&
+        isValidProjectMilestone(incoming()) &&
+        incoming().authorUid == request.auth.uid &&
+        incoming().createdAt == request.time && (
+          isAdmin() ||
+          (
+            exists(/databases/$(database)/documents/projects/$(incoming().projectId)) &&
+            get(/databases/$(database)/documents/projects/$(incoming().projectId)).data.ownerUid == request.auth.uid
+          )
+        );
+      allow update: if false;
+      allow delete: if isVerifiedUser() &&
+        isValidId(milestoneId) &&
+        (existing().authorUid == request.auth.uid || isAdmin());
     }
   }
 }

@@ -6,6 +6,7 @@ import type {
   AppLanguage,
   CatalogProject,
   OwnershipClaimRecord,
+  ProjectActivityRecord,
   ProjectReportRecord,
 } from '../types/vibeatlas';
 import { UI_STRINGS } from '../data/i18n';
@@ -14,6 +15,10 @@ import {
   computeProjectEngagementRows,
   type MakerAnalyticsSort,
 } from '../lib/makerAnalytics';
+import { computeCatalogHighlightContext } from '../lib/projectHighlightBadges';
+import { selectTrendingByEngagement7d } from '../lib/trendingEngagement';
+import { resolveMakerVerification } from '../lib/makerVerification';
+import { MakerVerificationBadge } from './MakerVerificationBadge';
 import { ProjectCard } from './ProjectCard';
 
 interface MakerDashboardPageProps {
@@ -24,6 +29,7 @@ interface MakerDashboardPageProps {
   bookmarkedIds: Set<string>;
   reports: ProjectReportRecord[];
   claims: OwnershipClaimRecord[];
+  recentActivities?: ReadonlyArray<ProjectActivityRecord>;
   syncingProjectId: string | null;
   onSignIn: () => void;
   onNavigate: (page: ActivePage) => void;
@@ -44,6 +50,7 @@ export function MakerDashboardPage({
   bookmarkedIds,
   reports,
   claims,
+  recentActivities = [],
   syncingProjectId,
   onSignIn,
   onNavigate,
@@ -57,6 +64,15 @@ export function MakerDashboardPage({
   const [analyticsSort, setAnalyticsSort] = useState<MakerAnalyticsSort>('engagement');
   const prevUidRef = useRef<string | null>(user?.uid ?? null);
   const copy = UI_STRINGS[language].maker;
+  const highlightContext = useMemo(() => computeCatalogHighlightContext(projects), [projects]);
+  const engagementTrendingMap = useMemo(
+    () =>
+      selectTrendingByEngagement7d(projects, {
+        activities: recentActivities,
+        maxBadges: 3,
+      }),
+    [projects, recentActivities]
+  );
 
   useEffect(() => {
     const currentUid = user?.uid ?? null;
@@ -426,13 +442,20 @@ export function MakerDashboardPage({
                         className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                       >
                         <div className="min-w-0 flex-1">
-                          <button
-                            type="button"
-                            onClick={() => onOpenDetail(proj)}
-                            className="text-base font-semibold text-slate-900 hover:text-blue-700 hover:underline dark:text-white dark:hover:text-blue-400"
-                          >
-                            {proj.name}
-                          </button>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => onOpenDetail(proj)}
+                              className="text-base font-semibold text-slate-900 hover:text-blue-700 hover:underline dark:text-white dark:hover:text-blue-400"
+                            >
+                              {proj.name}
+                            </button>
+                            <MakerVerificationBadge
+                              verification={resolveMakerVerification(proj, claims, user?.uid ?? null)}
+                              language={language}
+                              variant="card"
+                            />
+                          </div>
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                             <span>{proj.verificationStatus}</span>
                             <span aria-hidden="true">·</span>
@@ -500,6 +523,9 @@ export function MakerDashboardPage({
                     language={language}
                     isLiked={likedIds.has(proj.id)}
                     isBookmarked={bookmarkedIds.has(proj.id)}
+                    engagementTrending={engagementTrendingMap.get(proj.id)}
+                    highlightContext={highlightContext}
+                    makerClaims={claims}
                     onOpenDetail={onOpenDetail}
                     onToggleLike={onToggleLike}
                     onToggleBookmark={onToggleBookmark}

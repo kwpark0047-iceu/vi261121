@@ -141,11 +141,15 @@ export function buildHistoricalGrowthSeries(
     }
   }
 
-  const currentStars = Math.max(0, Number(project.githubStars) || 0);
   const snapshots = recordedSnapshots ?? (project.githubRepo ? loadStarSnapshots(project.githubRepo) : {});
   const snapshotDaysInWindow = baseSignals
     .map((pt) => pt.date)
     .filter((d) => typeof snapshots[d] === 'number');
+  const latestSnapshotStars =
+    snapshotDaysInWindow.length > 0
+      ? Math.max(0, Number(snapshots[snapshotDaysInWindow[snapshotDaysInWindow.length - 1]]) || 0)
+      : 0;
+  const currentStars = Math.max(0, Number(project.githubStars) || 0, latestSnapshotStars);
 
   // Incorporate multi-day live snapshots into githubStarsDelta if caller supplied/recorded >= 2 distinct dates
   const sourceSignals: DailySignalPoint[] = baseSignals.map((pt) => ({ ...pt }));

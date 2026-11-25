@@ -22,6 +22,7 @@ import type {
   CatalogProject,
   OwnershipClaimRecord,
   ProjectActivityRecord,
+  ProjectMilestoneRecord,
   ProjectReportRecord,
 } from '../types/vibeatlas';
 import {
@@ -42,12 +43,27 @@ import {
 } from '../lib/catalogEngine';
 import { getProjectTags, resolveCanonicalCategoryTag } from '../lib/projectTags';
 import { mergeAndSortCommunityActivities } from '../lib/communityActivity';
-import { subscribeToProjectActivities } from '../lib/firestoreRepo';
+import {
+  createProjectMilestoneInFirestore,
+  deleteProjectMilestoneInFirestore,
+  subscribeToProjectActivities,
+  subscribeToProjectMilestones,
+} from '../lib/firestoreRepo';
 import { sanitizeExternalUrl, ownershipClaimSchema, reportSubmissionSchema } from '../lib/validation';
+import { resolveMakerVerification } from '../lib/makerVerification';
+import {
+  computeCatalogHighlightContext,
+  resolveProjectHighlightBadges,
+} from '../lib/projectHighlightBadges';
 import { buildProjectShareUrl, buildPromotionCopy } from '../lib/submissionPromotion';
+import { MakerTrustPanel, MakerVerificationBadge } from './MakerVerificationBadge';
 import { ProjectCommunityActivity } from './ProjectCommunityActivity';
 import { ProjectGrowthChart } from './ProjectGrowthChart';
+import { ProjectHighlightBadges } from './ProjectHighlightBadges';
+import { ProjectInsightsDashboard } from './ProjectInsightsDashboard';
+import { ProjectMilestoneTimeline } from './ProjectMilestoneTimeline';
 import { VibeScoreGauge } from './VibeScoreGauge';
+import { VibeVolatilityTrendChart } from './VibeVolatilityTrendChart';
 
 interface ProjectDetailModalProps {
   project: CatalogProject | null;
@@ -59,6 +75,7 @@ interface ProjectDetailModalProps {
   isSyncing: boolean;
   localActivities?: ReadonlyArray<ProjectActivityRecord>;
   userReports?: ReadonlyArray<ProjectReportRecord>;
+  userClaims?: ReadonlyArray<OwnershipClaimRecord>;
   onClose: () => void;
   onSelectProject: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
@@ -88,6 +105,7 @@ export function ProjectDetailModal({
   isSyncing,
   localActivities = [],
   userReports = [],
+  userClaims = [],
   onClose,
   onSelectProject,
   onToggleLike,
@@ -111,6 +129,8 @@ export function ProjectDetailModal({
   const [firestoreActivities, setFirestoreActivities] = useState<ProjectActivityRecord[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
   const [activityError, setActivityError] = useState<string | null>(null);
+  const [creatorMilestones, setCreatorMilestones] = useState<ProjectMilestoneRecord[]>([]);
+  const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [promoCopied, setPromoCopied] = useState<'none' | 'link' | 'pitch'>('none');
 
   useEffect(() => {
@@ -159,6 +179,26 @@ export function ProjectDetailModal({
     return () => unsub();
   }, [project?.id]);
 
+  useEffect(() => {
+    if (!project) {
+      setCreatorMilestones([]);
+      setMilestonesLoading(false);
+      return;
+    }
+    setMilestonesLoading(true);
+    const unsub = subscribeToProjectMilestones(
+      project.id,
+      (list) => {
+        setCreatorMilestones(list);
+        setMilestonesLoading(false);
+      },
+      () => {
+        setMilestonesLoading(false);
+      }
+    );
+    return () => unsub();
+  }, [project?.id]);
+
   const related = useMemo(() => {
     if (!project) return [];
     return getRelatedProjects(project, allProjects, 3);
@@ -177,6 +217,11 @@ export function ProjectDetailModal({
     });
   }, [project, firestoreActivities, localActivities, userReports, user]);
 
+  const highlightContext = useMemo(
+    () => computeCatalogHighlightContext(allProjects),
+    [allProjects]
+  );
+
   if (!project) return null;
 
   const copy = UI_STRINGS[language].detail;
@@ -189,6 +234,12 @@ export function ProjectDetailModal({
   const fullDesc =
     language === 'ko' && project.descriptionKo ? project.descriptionKo : project.description;
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
+  const makerVerification = resolveMakerVerification(project, userClaims, user?.uid ?? null);
+  const highlightBadges = resolveProjectHighlightBadges(project, {
+    context: highlightContext,
+    activities: communityActivities,
+    maxBadges: 3,
+  });
 
   const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,12 +326,24 @@ export function ProjectDetailModal({
               <span aria-hidden="true">·</span>
               <span>{VERIFICATION_LABELS[language][project.verificationStatus]}</span>
             </div>
-            <h2
-              id="detail-modal-title"
-              className="mt-1 truncate text-xl font-bold text-slate-900 dark:text-white"
-            >
-              {project.name}
-            </h2>
+            <div className="mt-1 flex flex-wrap items-center gap-2.5">
+              <h2
+                id="detail-modal-title"
+                className="truncate text-xl font-bold text-slate-900 dark:text-white"
+              >
+                {project.name}
+              </h2>
+              <MakerVerificationBadge
+                verification={makerVerification}
+                language={language}
+                variant="header"
+              />
+              <ProjectHighlightBadges
+                badges={highlightBadges}
+                language={language}
+                variant="detail"
+              />
+            </div>
           </div>
 
           <button
@@ -356,6 +419,65 @@ export function ProjectDetailModal({
             </div>
           </div>
 
+          {/* Maker Verification & Ownership Trust Panel */}
+          <MakerTrustPanel
+            verification={makerVerification}
+            language={language}
+            claimFormOpen={activeActionForm === 'claim'}
+            onRequestClaim={() =>
+              setActiveActionForm((prev) => (prev === 'claim' ? 'none' : 'claim'))
+            }
+          />
+
+          {activeActionForm === 'claim' && (
+            <form
+              data-testid="detail-claim-form"
+              onSubmit={handleClaimSubmit}
+              className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">{copy.claimTitle}</h3>
+              <select
+                value={claimMethod}
+                onChange={(e) =>
+                  setClaimMethod(e.target.value as OwnershipClaimRecord['verificationMethod'])
+                }
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
+              >
+                <option value="github_repo">GitHub Repository Maintainer</option>
+                <option value="domain_dns">Domain DNS TXT Verification</option>
+                <option value="demo_meta">Live Demo Meta Tag</option>
+              </select>
+              <textarea
+                rows={3}
+                value={claimProof}
+                onChange={(e) => setClaimProof(e.target.value)}
+                placeholder="Provide your GitHub handle or verification DNS/URL note..."
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
+              />
+              <div className="flex items-center justify-between">
+                {!user && <span className="text-xs text-slate-500">{copy.signInRequired}</span>}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="ml-auto rounded-lg bg-blue-700 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-800"
+                >
+                  {copy.submitClaim}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Project Insights Dashboard (D3 7-Day Likes & Bookmarks Trend) */}
+          <ProjectInsightsDashboard
+            project={project}
+            activities={communityActivities}
+            language={language}
+            isLiked={isLiked}
+            isBookmarked={isBookmarked}
+            onToggleLike={onToggleLike}
+            onToggleBookmark={onToggleBookmark}
+          />
+
           {/* D3 Community Vibe Score & Activity Health Gauge */}
           <VibeScoreGauge
             project={project}
@@ -363,6 +485,18 @@ export function ProjectDetailModal({
             activities={communityActivities}
             isLiked={isLiked}
             isBookmarked={isBookmarked}
+            language={language}
+          />
+
+          {/* D3 Vibe Score Volatility vs Repository Star Growth Rate Trend */}
+          <VibeVolatilityTrendChart
+            project={project}
+            allProjects={allProjects}
+            activities={communityActivities}
+            isLiked={isLiked}
+            isBookmarked={isBookmarked}
+            isSyncing={isSyncing}
+            onSyncSingleGithub={onSyncSingleGithub}
             language={language}
           />
 
@@ -586,43 +720,6 @@ export function ProjectDetailModal({
             </form>
           )}
 
-          {activeActionForm === 'claim' && (
-            <form
-              onSubmit={handleClaimSubmit}
-              className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
-            >
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">{copy.claimTitle}</h3>
-              <select
-                value={claimMethod}
-                onChange={(e) =>
-                  setClaimMethod(e.target.value as OwnershipClaimRecord['verificationMethod'])
-                }
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
-              >
-                <option value="github_repo">GitHub Repository Maintainer</option>
-                <option value="domain_dns">Domain DNS TXT Verification</option>
-                <option value="demo_meta">Live Demo Meta Tag</option>
-              </select>
-              <textarea
-                rows={3}
-                value={claimProof}
-                onChange={(e) => setClaimProof(e.target.value)}
-                placeholder="Provide your GitHub handle or verification DNS/URL note..."
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950"
-              />
-              <div className="flex items-center justify-between">
-                {!user && <span className="text-xs text-slate-500">{copy.signInRequired}</span>}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="ml-auto rounded-lg bg-blue-700 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-800"
-                >
-                  {copy.submitClaim}
-                </button>
-              </div>
-            </form>
-          )}
-
           {/* Stack Attribution & Metadata Provenance */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
@@ -750,6 +847,32 @@ export function ProjectDetailModal({
             language={language}
             isSyncing={isSyncing}
             onSyncSingleGithub={onSyncSingleGithub}
+          />
+
+          {/* Vertical Timeline Visualization (GitHub Activity + Creator Logs + Provenance) */}
+          <ProjectMilestoneTimeline
+            project={project}
+            makerVerification={makerVerification}
+            language={language}
+            user={user}
+            creatorMilestones={creatorMilestones}
+            milestonesLoading={milestonesLoading}
+            onCreateMilestone={async (payload) => {
+              if (!user) throw new Error('Sign in required');
+              await createProjectMilestoneInFirestore(user, project, payload);
+            }}
+            onDeleteMilestone={async (milestoneId) => {
+              await deleteProjectMilestoneInFirestore(milestoneId);
+            }}
+            onSignIn={onSignIn}
+            onOpenClaimForm={() => {
+              setActiveActionForm('claim');
+              window.requestAnimationFrame(() => {
+                document
+                  .querySelector('[data-testid="detail-claim-form"]')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              });
+            }}
           />
 
           {/* Chronological Community Activity Feed */}

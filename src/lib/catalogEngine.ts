@@ -7,6 +7,7 @@ import type {
   SearchSuggestion,
 } from '../types/vibeatlas';
 import { matchesProjectTags, matchesSingleCategoryOrTag } from './projectTags';
+import { computeProjectEngagementGrowth7d } from './trendingEngagement';
 
 const KOREAN_TECH_ALIASES: Record<string, string[]> = {
   엠씨피: ['mcp', 'model context protocol'],
@@ -192,22 +193,33 @@ export function filterProjects(
 }
 
 function getWindowSignalScore(project: CatalogProject, days: number): number {
-  const points = project.historicalSignals ?? [];
-  if (points.length === 0) {
-    return project.likesCount * 2 + project.bookmarksCount * 3;
-  }
-  const slice = points.slice(-days);
-  return slice.reduce(
-    (acc, pt) => acc + pt.internalBookmarks * 3 + pt.internalLikes * 2 + pt.githubStarsDelta,
-    0
+  const points = [...(project.historicalSignals ?? [])].sort((a, b) =>
+    a.date.localeCompare(b.date)
   );
+  if (points.length === 0) {
+    return 0;
+  }
+  if (days === 7) {
+    return computeProjectEngagementGrowth7d(project).trendingScore;
+  }
+  const windowCount = Math.max(1, Math.min(days, points.length));
+  const latest = points[points.length - 1];
+  const anchorIdx = Math.max(0, points.length - windowCount - 1);
+  const anchor = points[anchorIdx];
+  const likesDelta = Math.max(0, (latest.internalLikes || 0) - (anchor.internalLikes || 0));
+  const bookmarksDelta = Math.max(
+    0,
+    (latest.internalBookmarks || 0) - (anchor.internalBookmarks || 0)
+  );
+  return likesDelta * 2 + bookmarksDelta * 3;
 }
 
 export function sortProjects(
   projects: CatalogProject[],
   sort: SearchFilters['sort'],
   rawQuery: string,
-  starGains7d?: ReadonlyMap<string, number>
+  starGains7d?: ReadonlyMap<string, number>,
+  engagementTrendingScores?: ReadonlyMap<string, number>
 ): CatalogProject[] {
   const copy = [...projects];
   copy.sort((a, b) => {
@@ -230,9 +242,17 @@ export function sortProjects(
       case 'trending_24h':
         return getWindowSignalScore(b, 1) - getWindowSignalScore(a, 1);
       case 'trending_7d': {
+        if (engagementTrendingScores) {
+          const engagementDiff =
+            (engagementTrendingScores.get(b.id) ?? 0) -
+            (engagementTrendingScores.get(a.id) ?? 0);
+          if (engagementDiff !== 0) return engagementDiff;
+        }
         const gainDiff = (starGains7d?.get(b.id) ?? 0) - (starGains7d?.get(a.id) ?? 0);
         if (gainDiff !== 0) return gainDiff;
-        return getWindowSignalScore(b, 7) - getWindowSignalScore(a, 7);
+        const signalDiff = getWindowSignalScore(b, 7) - getWindowSignalScore(a, 7);
+        if (signalDiff !== 0) return signalDiff;
+        return b.bookmarksCount + b.likesCount - (a.bookmarksCount + a.likesCount);
       }
       case 'trending_30d':
         return getWindowSignalScore(b, 30) - getWindowSignalScore(a, 30);

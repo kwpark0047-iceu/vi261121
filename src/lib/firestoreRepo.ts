@@ -22,9 +22,11 @@ import type {
   AppLanguage,
   CatalogProject,
   CommunityActivityType,
+  CreatorMilestoneKind,
   DailySignalPoint,
   OwnershipClaimRecord,
   ProjectActivityRecord,
+  ProjectMilestoneRecord,
   ProjectReportRecord,
 } from '../types/vibeatlas';
 
@@ -426,6 +428,28 @@ export async function submitReportToFirestore(
   }
 }
 
+function mapActivityDoc(d: { id: string; data: () => Record<string, unknown> }, fallbackProjectId = ''): ProjectActivityRecord {
+  const data = d.data();
+  const typeRaw = data.type;
+  const type: CommunityActivityType =
+    typeRaw === 'bookmark' || typeRaw === 'report' ? typeRaw : 'like';
+  return {
+    id: d.id,
+    projectId: String(data.projectId || fallbackProjectId),
+    projectSlug: String(data.projectSlug || ''),
+    actorUid: String(data.actorUid || ''),
+    actorName: String(data.actorName || 'VibeAtlas Member'),
+    actorHandle: String(data.actorHandle || ''),
+    type,
+    reportReason:
+      type === 'report' && typeof data.reportReason === 'string'
+        ? (data.reportReason as ProjectReportRecord['reason'])
+        : '',
+    createdAtIso: toIsoString(data.createdAt),
+    source: 'firestore' as const,
+  };
+}
+
 export function subscribeToProjectActivities(
   projectId: string,
   onData: (activities: ProjectActivityRecord[]) => void,
@@ -440,29 +464,33 @@ export function subscribeToProjectActivities(
   return onSnapshot(
     q,
     (snap) => {
-      const list: ProjectActivityRecord[] = snap.docs
-        .map((d) => {
-          const data = d.data();
-          const typeRaw = data.type;
-          const type: CommunityActivityType =
-            typeRaw === 'bookmark' || typeRaw === 'report' ? typeRaw : 'like';
-          return {
-            id: d.id,
-            projectId: String(data.projectId || projectId),
-            projectSlug: String(data.projectSlug || ''),
-            actorUid: String(data.actorUid || ''),
-            actorName: String(data.actorName || 'VibeAtlas Member'),
-            actorHandle: String(data.actorHandle || ''),
-            type,
-            reportReason:
-              type === 'report' && typeof data.reportReason === 'string'
-                ? (data.reportReason as ProjectReportRecord['reason'])
-                : '',
-            createdAtIso: toIsoString(data.createdAt),
-            source: 'firestore' as const,
-          };
-        });
-      onData(list);
+      onData(snap.docs.map((d) => mapActivityDoc(d, projectId)));
+    },
+    (error) => {
+      try {
+        handleFirestoreError(error, OperationType.LIST, path);
+      } catch (wrapped) {
+        if (onError && wrapped instanceof Error) onError(wrapped);
+      }
+    }
+  );
+}
+
+export function subscribeToGlobalProjectActivities(
+  limitCount: number,
+  onData: (activities: ProjectActivityRecord[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const path = 'projectActivities';
+  const q = query(
+    collection(db, 'projectActivities'),
+    orderBy('createdAt', 'desc'),
+    limit(Math.max(1, Math.min(80, limitCount)))
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      onData(snap.docs.map((d) => mapActivityDoc(d)));
     },
     (error) => {
       try {
@@ -574,3 +602,125 @@ export async function subscribeNewsletterInFirestore(
     handleFirestoreError(err, OperationType.WRITE, path);
   }
 }
+
+export function subscribeToProjectMilestones(
+  projectId: string,
+  onData: (milestones: ProjectMilestoneRecord[]) => void,
+  onError?: (err: Error) => void
+): Unsubscribe {
+  const path = 'projectMilestones';
+  const q = query(
+    collection(db, 'projectMilestones'),
+    where('projectId', '==', projectId),
+    limit(50)
+  );
+  return onSnapshot(
+    q,
+    (snap) => {
+      const list: ProjectMilestoneRecord[] = snap.docs.map((d) => {
+        const data = d.data();
+        const kindRaw = String(data.kind || 'update');
+        const kind: CreatorMilestoneKind =
+          kindRaw === 'release' ||
+          kindRaw === 'launch' ||
+          kindRaw === 'feature' ||
+          kindRaw === 'fix'
+            ? kindRaw
+            : 'update';
+        const createdAtIso = toIsoString(data.createdAt);
+        const occurredAtIso =
+          typeof data.occurredAtIso === 'string' && data.occurredAtIso
+            ? data.occurredAtIso
+            : createdAtIso;
+        return {
+          id: d.id,
+          projectId: String(data.projectId || projectId),
+          projectSlug: String(data.projectSlug || ''),
+          authorUid: String(data.authorUid || ''),
+          authorName: String(data.authorName || 'Maker'),
+          authorHandle: String(data.authorHandle || ''),
+          kind,
+          versionTag: String(data.versionTag || ''),
+          title: String(data.title || ''),
+          summary: String(data.summary || ''),
+          externalUrl: String(data.externalUrl || ''),
+          occurredAtIso,
+          createdAtIso,
+          source: 'firestore' as const,
+        };
+      });
+      onData(list);
+    },
+    (error) => {
+      try {
+        handleFirestoreError(error, OperationType.LIST, path);
+      } catch (wrapped) {
+        if (onError && wrapped instanceof Error) onError(wrapped);
+      }
+    }
+  );
+}
+
+export async function createProjectMilestoneInFirestore(
+  user: User,
+  project: Pick<CatalogProject, 'id' | 'slug'>,
+  payload: {
+    kind: CreatorMilestoneKind;
+    versionTag: string;
+    title: string;
+    summary: string;
+    externalUrl: string;
+    occurredAtIso: string;
+  }
+): Promise<ProjectMilestoneRecord> {
+  const milestoneId = `ms_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  const path = `projectMilestones/${milestoneId}`;
+  const actor = buildPublicActorFields(user);
+
+  const docPayload = {
+    projectId: project.id.slice(0, 128),
+    projectSlug: project.slug.slice(0, 120),
+    authorUid: user.uid,
+    authorName: actor.actorName.slice(0, 100),
+    authorHandle: actor.actorHandle.slice(0, 80),
+    kind: payload.kind,
+    versionTag: payload.versionTag.trim().slice(0, 40),
+    title: payload.title.trim().slice(0, 140),
+    summary: payload.summary.trim().slice(0, 800),
+    externalUrl: payload.externalUrl.trim().slice(0, 500),
+    occurredAtIso: payload.occurredAtIso.slice(0, 40),
+    createdAt: serverTimestamp(),
+  };
+
+  try {
+    await setDoc(doc(db, 'projectMilestones', milestoneId), docPayload);
+    return {
+      id: milestoneId,
+      projectId: docPayload.projectId,
+      projectSlug: docPayload.projectSlug,
+      authorUid: docPayload.authorUid,
+      authorName: docPayload.authorName,
+      authorHandle: docPayload.authorHandle,
+      kind: docPayload.kind,
+      versionTag: docPayload.versionTag,
+      title: docPayload.title,
+      summary: docPayload.summary,
+      externalUrl: docPayload.externalUrl,
+      occurredAtIso: docPayload.occurredAtIso,
+      createdAtIso: new Date().toISOString(),
+      source: 'firestore',
+    };
+  } catch (err) {
+    handleFirestoreError(err, OperationType.CREATE, path);
+  }
+}
+
+export async function deleteProjectMilestoneInFirestore(milestoneId: string): Promise<void> {
+  const path = `projectMilestones/${milestoneId}`;
+  try {
+    await deleteDoc(doc(db, 'projectMilestones', milestoneId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+

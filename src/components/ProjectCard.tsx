@@ -10,9 +10,13 @@ import {
   Heart,
   HelpCircle,
   Star,
-  TrendingUp,
 } from 'lucide-react';
-import type { AppLanguage, CatalogProject, ViewMode } from '../types/vibeatlas';
+import type {
+  AppLanguage,
+  CatalogProject,
+  OwnershipClaimRecord,
+  ViewMode,
+} from '../types/vibeatlas';
 import {
   BACKEND_LABELS,
   CONTENT_TYPE_LABELS,
@@ -26,9 +30,18 @@ import {
   detectMissingFields,
   formatCompactCount,
 } from '../lib/catalogEngine';
+import { resolveMakerVerification } from '../lib/makerVerification';
 import { getProjectTags, resolveCanonicalCategoryTag } from '../lib/projectTags';
 import { sanitizeExternalUrl } from '../lib/validation';
+import {
+  resolveProjectHighlightBadges,
+  type CatalogHighlightContext,
+} from '../lib/projectHighlightBadges';
+import type { EngagementTrendingInfo } from '../lib/trendingEngagement';
 import type { TrendingProjectInfo } from '../lib/trendingStars';
+import { MakerVerificationBadge } from './MakerVerificationBadge';
+import { ProjectHighlightBadges } from './ProjectHighlightBadges';
+import { TrendingBadge } from './TrendingBadge';
 
 interface ProjectCardProps {
   project: CatalogProject;
@@ -39,6 +52,9 @@ interface ProjectCardProps {
   isCompared?: boolean;
   compareDisabled?: boolean;
   trendingInfo?: TrendingProjectInfo;
+  engagementTrending?: EngagementTrendingInfo;
+  highlightContext?: CatalogHighlightContext;
+  makerClaims?: ReadonlyArray<OwnershipClaimRecord>;
   selectedTags?: ReadonlyArray<string>;
   onSelectTag?: (tag: string) => void;
   onOpenDetail: (project: CatalogProject) => void;
@@ -56,6 +72,9 @@ export function ProjectCard({
   isCompared = false,
   compareDisabled = false,
   trendingInfo,
+  engagementTrending,
+  highlightContext,
+  makerClaims,
   selectedTags,
   onSelectTag,
   onOpenDetail,
@@ -72,6 +91,11 @@ export function ProjectCard({
   const freshness = computeFreshnessState(project.lastSyncedAt);
   const missing = detectMissingFields(project);
   const projectTags = getProjectTags(project, 4);
+  const makerVerification = resolveMakerVerification(project, makerClaims);
+  const highlightBadges = resolveProjectHighlightBadges(project, {
+    context: highlightContext,
+    starsGained7d: trendingInfo?.starsGained7d,
+  });
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
   const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
   const safeGithub = sanitizeExternalUrl(project.githubUrl);
@@ -113,8 +137,8 @@ export function ProjectCard({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-x-1.5 whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">
             {typeof project.leaderboardRank === 'number' && project.leaderboardRank > 0 && (
               <span
                 data-testid="project-rank-badge"
@@ -127,39 +151,35 @@ export function ProjectCard({
                 #{project.leaderboardRank}
               </span>
             )}
-            <span className="font-medium text-slate-700 dark:text-slate-300">{typeLabel}</span>
-            <span aria-hidden="true">·</span>
-            <span>{project.country}</span>
-            <span aria-hidden="true">·</span>
-            {verificationNode}
+            <span className="min-w-0 truncate font-medium text-slate-700 dark:text-slate-300">
+              {typeLabel}
+            </span>
+            <span aria-hidden="true" className="shrink-0">
+              ·
+            </span>
+            <span className="shrink-0">{project.country}</span>
+            <span aria-hidden="true" className="shrink-0">
+              ·
+            </span>
+            <span className="inline-flex shrink-0 items-center">{verificationNode}</span>
             {freshness === 'stale' && (
               <>
-                <span aria-hidden="true">·</span>
-                <span className="text-amber-700 dark:text-amber-400">{copy.staleLabel}</span>
+                <span aria-hidden="true" className="shrink-0">
+                  ·
+                </span>
+                <span className="shrink-0 text-amber-700 dark:text-amber-400">
+                  {copy.staleLabel}
+                </span>
               </>
             )}
           </div>
 
-          {trendingInfo && trendingInfo.starsGained7d > 0 && (
-            <span
-              data-testid="trending-badge"
-              title={copy.trending7dTooltip.replace(
-                '{count}',
-                trendingInfo.starsGained7d.toLocaleString()
-              )}
-              aria-label={copy.trending7dTooltip.replace(
-                '{count}',
-                trendingInfo.starsGained7d.toLocaleString()
-              )}
-              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
-            >
-              <TrendingUp className="h-3 w-3 shrink-0" aria-hidden="true" />
-              <span>{copy.trendingBadge}</span>
-              <span className="font-mono tabular-nums">
-                +{formatCompactCount(trendingInfo.starsGained7d)}
-              </span>
-            </span>
-          )}
+          <TrendingBadge
+            language={language}
+            engagementTrending={engagementTrending}
+            starTrending={trendingInfo}
+            variant="card"
+          />
         </div>
 
         <h3 className="mt-2 text-base font-semibold leading-snug text-slate-900 dark:text-white">
@@ -172,7 +192,26 @@ export function ProjectCard({
           </button>
         </h3>
 
-        <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-xs text-slate-500 dark:text-slate-400">
+            {project.makerName}
+            {project.makerHandle ? ` (${project.makerHandle})` : ''}
+          </p>
+          <MakerVerificationBadge
+            verification={makerVerification}
+            language={language}
+            variant="card"
+          />
+        </div>
+
+        <ProjectHighlightBadges
+          badges={highlightBadges}
+          language={language}
+          variant="card"
+          className="mt-2"
+        />
+
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
           {tagline}
         </p>
 

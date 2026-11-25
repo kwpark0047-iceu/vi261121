@@ -18,7 +18,9 @@ import type {
   ContentType,
   DevelopmentPlatform,
   HostingProvider,
+  OwnershipClaimRecord,
   PricingModel,
+  ProjectActivityRecord,
   ProjectCategory,
   SearchFilters,
   SortOption,
@@ -53,8 +55,14 @@ import {
   resolveCanonicalCategoryTag,
   toggleTagSelection,
 } from '../lib/projectTags';
+import { computeCatalogHighlightContext } from '../lib/projectHighlightBadges';
+import {
+  computeEngagementTrendingScoresMap,
+  selectTrendingByEngagement7d,
+} from '../lib/trendingEngagement';
 import { computeStarGainsMap, selectTrendingProjects7d } from '../lib/trendingStars';
 import { useVoiceSearch } from '../hooks/useVoiceSearch';
+import { DiscoveryScatterMap } from './DiscoveryScatterMap';
 import { GitHubTrendingBubbleChart } from './GitHubTrendingBubbleChart';
 import { ProjectCard } from './ProjectCard';
 import { ProjectComparisonModal } from './ProjectComparisonModal';
@@ -71,6 +79,8 @@ interface DiscoverPageProps {
   onRetryWebApps?: () => void;
   likedIds: Set<string>;
   bookmarkedIds: Set<string>;
+  userClaims?: ReadonlyArray<OwnershipClaimRecord>;
+  recentActivities?: ReadonlyArray<ProjectActivityRecord>;
   snapshotRevision?: number;
   onUpdateFilters: (patch: Partial<SearchFilters>) => void;
   onResetFilters: () => void;
@@ -89,6 +99,8 @@ export function DiscoverPage({
   onRetryWebApps,
   likedIds,
   bookmarkedIds,
+  userClaims = [],
+  recentActivities = [],
   snapshotRevision = 0,
   onUpdateFilters,
   onResetFilters,
@@ -135,11 +147,37 @@ export function DiscoverPage({
     [projects, snapshotRevision]
   );
 
+  const engagementTrendingScores = useMemo(
+    () => computeEngagementTrendingScoresMap(projects, { activities: recentActivities }),
+    [projects, recentActivities]
+  );
+
+  const engagementTrendingMap = useMemo(
+    () =>
+      selectTrendingByEngagement7d(projects, {
+        activities: recentActivities,
+        maxBadges: 3,
+      }),
+    [projects, recentActivities]
+  );
+
+  const highlightContext = useMemo(
+    () => computeCatalogHighlightContext(projects),
+    [projects, snapshotRevision]
+  );
+
   const isFullWebAppView = filters.type === 'web_app';
   const filtered = useMemo(() => filterProjects(projects, filters), [projects, filters]);
   const sorted = useMemo(
-    () => sortProjects(filtered, filters.sort, filters.q, starGains7dMap),
-    [filtered, filters.sort, filters.q, starGains7dMap]
+    () =>
+      sortProjects(
+        filtered,
+        filters.sort,
+        filters.q,
+        starGains7dMap,
+        engagementTrendingScores
+      ),
+    [filtered, filters.sort, filters.q, starGains7dMap, engagementTrendingScores]
   );
   const pageSize = isFullWebAppView ? Math.max(100, sorted.length) : 9;
   const paginated = useMemo(
@@ -755,6 +793,18 @@ export function DiscoverPage({
           )}
 
           {!isLoading && (
+            <DiscoveryScatterMap
+              language={language}
+              filteredProjects={filtered}
+              filters={filters}
+              userClaims={userClaims}
+              snapshotRevision={snapshotRevision}
+              onOpenDetail={onOpenDetail}
+              onResetFilters={onResetFilters}
+            />
+          )}
+
+          {!isLoading && (
             <TrendingVelocityChart
               language={language}
               projects={filtered}
@@ -855,6 +905,9 @@ export function DiscoverPage({
                     compareIds.length >= MAX_COMPARE_PROJECTS && !compareIdSet.has(proj.id)
                   }
                   trendingInfo={trendingMap.get(proj.id)}
+                  engagementTrending={engagementTrendingMap.get(proj.id)}
+                  highlightContext={highlightContext}
+                  makerClaims={userClaims}
                   selectedTags={filters.tags}
                   onSelectTag={handleToggleTag}
                   onOpenDetail={onOpenDetail}

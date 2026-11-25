@@ -479,6 +479,84 @@
         "reportReason",
         "createdAt"
       ]
+    },
+    "ProjectMilestone": {
+      "title": "ProjectMilestone",
+      "description": "Creator-published milestone or changelog update attached to a project timeline.",
+      "type": "object",
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "projectSlug": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "authorUid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "authorName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "authorHandle": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["release", "launch", "feature", "update", "fix"]
+        },
+        "versionTag": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "title": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 140
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 800
+        },
+        "externalUrl": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "occurredAtIso": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 40,
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "projectId",
+        "projectSlug",
+        "authorUid",
+        "authorName",
+        "authorHandle",
+        "kind",
+        "versionTag",
+        "title",
+        "summary",
+        "externalUrl",
+        "occurredAtIso",
+        "createdAt"
+      ]
     }
   },
   "firestore": {
@@ -517,6 +595,10 @@
     "/projectActivities/{activityId}": {
       "schema": { "$ref": "#/entities/ProjectActivity" },
       "description": "PII-free public chronological community activity log per project."
+    },
+    "/projectMilestones/{milestoneId}": {
+      "schema": { "$ref": "#/entities/ProjectMilestone" },
+      "description": "Creator-published project milestone and release timeline entries."
     }
   }
 }

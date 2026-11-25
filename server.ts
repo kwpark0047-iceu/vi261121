@@ -18,7 +18,10 @@ import { parseGitHubRepoSlug } from './src/lib/validation.ts';
 import type {
   AppLanguage,
   GitHubAiTrendingRepo,
+  GitHubCommitEvent,
+  GitHubMilestonesPayload,
   GitHubRankedRepo,
+  GitHubReleaseEvent,
   GitHubRepoMetadata,
   GitHubTopRepoPreset,
 } from './src/types/vibeatlas.ts';
@@ -40,7 +43,13 @@ interface TopStarredCacheEntry {
   items: GitHubRankedRepo[];
 }
 
+interface MilestonesCacheEntry {
+  expiresAt: number;
+  data: GitHubMilestonesPayload;
+}
+
 const githubCache = new Map<string, CacheEntry>();
+const githubMilestonesCache = new Map<string, MilestonesCacheEntry>();
 const topStarredCache = new Map<GitHubTopRepoPreset, TopStarredCacheEntry>();
 const TOP_STARRED_CACHE_DIR = path.resolve(__dirname, '.cache');
 
@@ -408,6 +417,175 @@ async function createApp() {
       return;
     }
     res.json({ repo: result.data });
+  });
+
+  app.get('/api/github/milestones', async (req: Request, res: Response) => {
+    const rawRepo = typeof req.query.repo === 'string' ? req.query.repo : '';
+    const slug = parseGitHubRepoSlug(rawRepo);
+    if (!slug) {
+      res.status(400).json({
+        error: 'Provide a valid GitHub repository (owner/repo or https://github.com/owner/repo).',
+      });
+      return;
+    }
+
+    const forceRefresh = req.query.refresh === '1';
+    const cacheKey = slug.toLowerCase();
+    const cached = githubMilestonesCache.get(cacheKey);
+    if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
+      res.json(cached.data);
+      return;
+    }
+
+    const [owner, repo] = slug.split('/');
+    const releasesEndpoint = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/releases?per_page=8`;
+    const commitsEndpoint = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/commits?per_page=10`;
+
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'User-Agent': 'VibeAtlas-Directory-Sync',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const ghToken = process.env.GITHUB_TOKEN?.trim();
+    if (ghToken) {
+      headers.Authorization = `Bearer ${ghToken}`;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8500);
+
+    try {
+      const [releasesResp, commitsResp] = await Promise.all([
+        fetch(releasesEndpoint, { headers, signal: controller.signal }),
+        fetch(commitsEndpoint, { headers, signal: controller.signal }),
+      ]);
+      clearTimeout(timeout);
+
+      const rateLimited =
+        releasesResp.status === 403 ||
+        releasesResp.status === 429 ||
+        commitsResp.status === 403 ||
+        commitsResp.status === 429;
+
+      if (rateLimited) {
+        if (cached) {
+          res.json({ ...cached.data, staleCache: true });
+          return;
+        }
+        res.status(429).json({
+          error:
+            'GitHub API rate limit reached while fetching repository milestones. Try again shortly.',
+        });
+        return;
+      }
+
+      if (commitsResp.status === 404 && releasesResp.status === 404) {
+        res.status(404).json({ error: `GitHub repository "${slug}" was not found.` });
+        return;
+      }
+
+      let releases: GitHubReleaseEvent[] = [];
+      if (releasesResp.ok) {
+        const rawReleases = (await releasesResp.json()) as unknown[];
+        if (Array.isArray(rawReleases)) {
+          releases = rawReleases
+            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+            .filter((item) => !item.draft)
+            .slice(0, 8)
+            .map((item) => {
+              const authorObj = item.author as Record<string, unknown> | null | undefined;
+              const tagName = String(item.tag_name || '').slice(0, 48);
+              const name = String(item.name || tagName || 'Release').slice(0, 140);
+              const rawBody = typeof item.body === 'string' ? item.body : '';
+              return {
+                id: String(item.id || tagName || name),
+                tagName,
+                name,
+                bodySummary: rawBody.slice(0, 600),
+                htmlUrl:
+                  typeof item.html_url === 'string'
+                    ? item.html_url
+                    : `https://github.com/${slug}/releases`,
+                publishedAtIso:
+                  typeof item.published_at === 'string' && item.published_at
+                    ? item.published_at
+                    : typeof item.created_at === 'string'
+                      ? item.created_at
+                      : '',
+                prerelease: Boolean(item.prerelease),
+                authorLogin:
+                  authorObj && typeof authorObj.login === 'string' ? authorObj.login : '',
+              };
+            })
+            .filter((rel) => Boolean(rel.publishedAtIso));
+        }
+      }
+
+      let commits: GitHubCommitEvent[] = [];
+      if (commitsResp.ok) {
+        const rawCommits = (await commitsResp.json()) as unknown[];
+        if (Array.isArray(rawCommits)) {
+          commits = rawCommits
+            .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+            .slice(0, 10)
+            .map((item) => {
+              const sha = String(item.sha || '');
+              const commitObj = item.commit as Record<string, unknown> | null | undefined;
+              const commitAuthorObj = commitObj?.author as Record<string, unknown> | null | undefined;
+              const ghAuthorObj = item.author as Record<string, unknown> | null | undefined;
+              const rawMessage =
+                commitObj && typeof commitObj.message === 'string' ? commitObj.message : '';
+              const firstLine = rawMessage.split('\n')[0]?.trim() || 'Repository commit';
+              const dateIso =
+                commitAuthorObj && typeof commitAuthorObj.date === 'string'
+                  ? commitAuthorObj.date
+                  : '';
+              const authorName =
+                commitAuthorObj && typeof commitAuthorObj.name === 'string'
+                  ? commitAuthorObj.name
+                  : 'Contributor';
+              return {
+                sha,
+                shortSha: sha.slice(0, 7),
+                messageHeadline: firstLine.slice(0, 160),
+                authorLogin:
+                  ghAuthorObj && typeof ghAuthorObj.login === 'string' ? ghAuthorObj.login : '',
+                authorName: authorName.slice(0, 80),
+                htmlUrl:
+                  typeof item.html_url === 'string'
+                    ? item.html_url
+                    : `https://github.com/${slug}/commit/${sha}`,
+                committedAtIso: dateIso,
+              };
+            })
+            .filter((c) => Boolean(c.sha && c.committedAtIso));
+        }
+      }
+
+      const payload: GitHubMilestonesPayload = {
+        repo: slug,
+        fetchedAt: new Date().toISOString(),
+        releases,
+        commits,
+        staleCache: false,
+      };
+
+      githubMilestonesCache.set(cacheKey, {
+        expiresAt: Date.now() + CACHE_TTL_MS,
+        data: payload,
+      });
+
+      res.json(payload);
+    } catch (err) {
+      clearTimeout(timeout);
+      if (cached) {
+        res.json({ ...cached.data, staleCache: true });
+        return;
+      }
+      res.status(502).json({
+        error: err instanceof Error ? err.message : 'Failed to fetch GitHub repository activity.',
+      });
+    }
   });
 
   app.post('/api/github/sync-batch', async (req: Request, res: Response) => {

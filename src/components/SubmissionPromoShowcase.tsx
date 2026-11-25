@@ -8,8 +8,14 @@ import {
   Link2,
   Megaphone,
 } from 'lucide-react';
-import type { ActivePage, AppLanguage, CatalogProject } from '../types/vibeatlas';
+import type {
+  ActivePage,
+  AppLanguage,
+  CatalogProject,
+  OwnershipClaimRecord,
+} from '../types/vibeatlas';
 import { CONTENT_TYPE_LABELS, PLATFORM_LABELS, UI_STRINGS } from '../data/i18n';
+import { resolveMakerVerification } from '../lib/makerVerification';
 import {
   buildProjectShareUrl,
   buildPromotionCopy,
@@ -18,11 +24,13 @@ import {
   type PromoShowcaseFilter,
 } from '../lib/submissionPromotion';
 import { sanitizeExternalUrl } from '../lib/validation';
+import { MakerVerificationBadge } from './MakerVerificationBadge';
 
 interface SubmissionPromoShowcaseProps {
   language: AppLanguage;
   projects: CatalogProject[];
   likedIds: Set<string>;
+  userClaims?: ReadonlyArray<OwnershipClaimRecord>;
   onOpenDetail: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
   onNavigate: (page: ActivePage) => void;
@@ -58,6 +66,7 @@ export function SubmissionPromoShowcase({
   language,
   projects,
   likedIds,
+  userClaims = [],
   onOpenDetail,
   onToggleLike,
   onNavigate,
@@ -207,6 +216,7 @@ export function SubmissionPromoShowcase({
                 const tagline =
                   language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
                 const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
+                const makerVerification = resolveMakerVerification(project, userClaims);
 
                 return (
                   <div
@@ -251,13 +261,20 @@ export function SubmissionPromoShowcase({
                         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
                           {tagline}
                         </p>
-                        <p className="mt-2 truncate text-[11px] text-slate-500 dark:text-slate-400">
-                          {project.makerName}
-                          {project.makerHandle ? ` (${project.makerHandle})` : ''}
-                          {project.techStack.length > 0
-                            ? ` · ${project.techStack.slice(0, 3).join(' · ')}`
-                            : ''}
-                        </p>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          <span className="truncate">
+                            {project.makerName}
+                            {project.makerHandle ? ` (${project.makerHandle})` : ''}
+                            {project.techStack.length > 0
+                              ? ` · ${project.techStack.slice(0, 3).join(' · ')}`
+                              : ''}
+                          </span>
+                          <MakerVerificationBadge
+                            verification={makerVerification}
+                            language={language}
+                            variant="inline"
+                          />
+                        </div>
                       </button>
 
                       {/* Row Actions */}

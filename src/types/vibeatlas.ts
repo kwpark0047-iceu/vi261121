@@ -120,6 +120,7 @@ export interface CatalogProject {
   createdAtIso: string;
   updatedAtIso: string;
   isCuratedSeed?: boolean;
+  isFeatured?: boolean;
   leaderboardRank?: number;
   historicalSignals?: DailySignalPoint[];
 }
@@ -256,3 +257,77 @@ export interface GitHubAiTrendingRepo {
   dailyStars: number;
   dailyRateSource: DailyStarRateSource;
 }
+
+export type MilestoneSource =
+  | 'github_release'
+  | 'github_commit'
+  | 'creator_log'
+  | 'catalog_event';
+
+export type CreatorMilestoneKind = 'release' | 'launch' | 'feature' | 'update' | 'fix';
+
+export interface GitHubReleaseEvent {
+  id: string;
+  tagName: string;
+  name: string;
+  bodySummary: string;
+  htmlUrl: string;
+  publishedAtIso: string;
+  prerelease: boolean;
+  authorLogin: string;
+}
+
+export interface GitHubCommitEvent {
+  sha: string;
+  shortSha: string;
+  messageHeadline: string;
+  authorLogin: string;
+  authorName: string;
+  htmlUrl: string;
+  committedAtIso: string;
+}
+
+export interface GitHubMilestonesPayload {
+  repo: string;
+  fetchedAt: string;
+  releases: GitHubReleaseEvent[];
+  commits: GitHubCommitEvent[];
+  staleCache?: boolean;
+}
+
+export interface ProjectMilestoneRecord {
+  id: string;
+  projectId: string;
+  projectSlug: string;
+  authorUid: string;
+  authorName: string;
+  authorHandle: string;
+  kind: CreatorMilestoneKind;
+  versionTag: string;
+  title: string;
+  summary: string;
+  externalUrl: string;
+  occurredAtIso: string;
+  createdAtIso: string;
+  source: 'firestore' | 'local';
+}
+
+export type TimelineFilterMode = 'all' | 'releases' | 'commits' | 'creator_logs';
+export type TimelineSortOrder = 'newest' | 'oldest';
+
+export interface TimelineEntry {
+  id: string;
+  source: MilestoneSource;
+  kind: CreatorMilestoneKind | 'commit' | 'launch' | 'sync' | 'verified';
+  title: string;
+  summary: string;
+  versionTag: string;
+  actorLabel: string;
+  externalUrl: string;
+  timestampIso: string;
+  timestampMs: number;
+  prerelease?: boolean;
+  shortSha?: string;
+  creatorRecord?: ProjectMilestoneRecord;
+}
+

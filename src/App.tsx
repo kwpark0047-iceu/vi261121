@@ -10,6 +10,7 @@ import {
   submitReportToFirestore,
   subscribeNewsletterInFirestore,
   subscribeToFirestoreProjects,
+  subscribeToGlobalProjectActivities,
   subscribeToUserBookmarks,
   subscribeToUserClaims,
   subscribeToUserReports,
@@ -127,6 +128,7 @@ export default function App() {
   const [firestoreBookmarks, setFirestoreBookmarks] = useState<Set<string>>(new Set());
   const [userReports, setUserReports] = useState<ProjectReportRecord[]>([]);
   const [userClaims, setUserClaims] = useState<OwnershipClaimRecord[]>([]);
+  const [firestoreActivities, setFirestoreActivities] = useState<ProjectActivityRecord[]>([]);
   const [localActivities, setLocalActivities] = useState<ProjectActivityRecord[]>(() =>
     loadLocalProjectActivities()
   );
@@ -219,7 +221,15 @@ export default function App() {
       (list) => setFirestoreProjects(list),
       (err) => console.error('Firestore projects listener error:', err)
     );
-    return () => unsubProjects();
+    const unsubGlobalActivities = subscribeToGlobalProjectActivities(
+      40,
+      (list) => setFirestoreActivities(list),
+      (err) => console.error('Firestore global activities listener error:', err)
+    );
+    return () => {
+      unsubProjects();
+      unsubGlobalActivities();
+    };
   }, []);
 
   useEffect(() => {
@@ -610,6 +620,10 @@ export default function App() {
               likedIds={guestLikes}
               bookmarkedIds={effectiveBookmarks}
               user={user}
+              userClaims={userClaims}
+              firestoreActivities={firestoreActivities}
+              recentActivities={localActivities}
+              snapshotRevision={snapshotRevision}
               onOpenDetail={(p) => setSelectedSlug(p.slug)}
               onToggleLike={(p) => void handleToggleLike(p)}
               onToggleBookmark={(p) => void handleToggleBookmark(p)}
@@ -634,6 +648,8 @@ export default function App() {
               onRetryWebApps={() => void loadWebAppTop100(true)}
               likedIds={guestLikes}
               bookmarkedIds={effectiveBookmarks}
+              userClaims={userClaims}
+              recentActivities={localActivities}
               snapshotRevision={snapshotRevision}
               onUpdateFilters={handleUpdateFilters}
               onResetFilters={handleResetFilters}
@@ -669,6 +685,7 @@ export default function App() {
               bookmarkedIds={effectiveBookmarks}
               reports={userReports}
               claims={userClaims}
+              recentActivities={localActivities}
               syncingProjectId={syncingProjectId}
               onSignIn={() => void handleSignIn()}
               onNavigate={setActivePage}
@@ -698,6 +715,7 @@ export default function App() {
           isSyncing={Boolean(selectedProject && syncingProjectId === selectedProject.id)}
           localActivities={localActivities}
           userReports={userReports}
+          userClaims={userClaims}
           onClose={() => setSelectedSlug(null)}
           onSelectProject={(p) => setSelectedSlug(p.slug)}
           onToggleLike={(p) => void handleToggleLike(p)}

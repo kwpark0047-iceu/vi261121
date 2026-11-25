@@ -32,3 +32,11 @@ test('firestore.rules validates PII-free ProjectActivity records and restricts a
   assert.match(rulesSource, /existing\(\)\.type in \['like', 'bookmark'\]/);
 });
 
+test('firestore.rules validates ProjectMilestone creator logs and enforces project ownership or admin', () => {
+  assert.match(rulesSource, /function isValidProjectMilestone\(data\)/);
+  assert.match(rulesSource, /match \/projectMilestones\/\{milestoneId\}/);
+  assert.match(rulesSource, /incoming\(\)\.authorUid == request\.auth\.uid/);
+  assert.match(rulesSource, /data\.ownerUid == request\.auth\.uid/);
+  assert.match(rulesSource, /allow update: if false;/);
+});
+

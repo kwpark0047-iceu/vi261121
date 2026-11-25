@@ -12,6 +12,8 @@ import type {
   AppLanguage,
   CatalogProject,
   ContentType,
+  OwnershipClaimRecord,
+  ProjectActivityRecord,
   SearchFilters,
 } from '../types/vibeatlas';
 import {
@@ -26,8 +28,15 @@ import {
   WORKSPACE_SHOWCASE_IMAGE,
 } from '../data/seedCatalog';
 import { getSearchSuggestions, sortProjects } from '../lib/catalogEngine';
+import { computeCatalogHighlightContext } from '../lib/projectHighlightBadges';
+import {
+  computeEngagementTrendingScoresMap,
+  selectTrendingByEngagement7d,
+} from '../lib/trendingEngagement';
 import { useVoiceSearch } from '../hooks/useVoiceSearch';
 import { ProjectCard } from './ProjectCard';
+import { HomeTrending24hSection } from './HomeTrending24hSection';
+import { RecentActivityWidget } from './RecentActivityWidget';
 import { SubmissionPromoShowcase } from './SubmissionPromoShowcase';
 import { VoiceSearchButton, VoiceSearchFeedback } from './VoiceSearchButton';
 
@@ -37,6 +46,10 @@ interface HomePageProps {
   likedIds: Set<string>;
   bookmarkedIds: Set<string>;
   user: User | null;
+  userClaims?: ReadonlyArray<OwnershipClaimRecord>;
+  firestoreActivities?: ReadonlyArray<ProjectActivityRecord>;
+  recentActivities?: ReadonlyArray<ProjectActivityRecord>;
+  snapshotRevision?: number;
   onOpenDetail: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
   onToggleBookmark: (project: CatalogProject) => void;
@@ -54,6 +67,10 @@ export function HomePage({
   likedIds,
   bookmarkedIds,
   user,
+  userClaims = [],
+  firestoreActivities = [],
+  recentActivities = [],
+  snapshotRevision = 0,
   onOpenDetail,
   onToggleLike,
   onToggleBookmark,
@@ -89,6 +106,23 @@ export function HomePage({
     [heroQuery, projects, language]
   );
 
+  const engagementTrendingScores = useMemo(
+    () =>
+      computeEngagementTrendingScoresMap(projects, {
+        activities: recentActivities,
+      }),
+    [projects, recentActivities]
+  );
+
+  const engagementTrendingMap = useMemo(
+    () =>
+      selectTrendingByEngagement7d(projects, {
+        activities: recentActivities,
+        maxBadges: 3,
+      }),
+    [projects, recentActivities]
+  );
+
   const spotlightProjects = useMemo(() => {
     if (spotlightTab === 'new') {
       return sortProjects(projects, 'recently_added', '').slice(0, 3);
@@ -99,8 +133,8 @@ export function HomePage({
       );
       return sortProjects(ossOnly, 'most_starred', '').slice(0, 3);
     }
-    return sortProjects(projects, 'trending_7d', '').slice(0, 3);
-  }, [projects, spotlightTab]);
+    return sortProjects(projects, 'trending_7d', '', undefined, engagementTrendingScores).slice(0, 3);
+  }, [projects, spotlightTab, engagementTrendingScores]);
 
   const mcpAndSkillProjects = useMemo(
     () =>
@@ -115,6 +149,11 @@ export function HomePage({
     const global = projects.filter((p) => p.country !== 'KR');
     return [...kr.slice(0, 2), ...global.slice(0, 1)].slice(0, 3);
   }, [projects]);
+
+  const highlightContext = useMemo(
+    () => computeCatalogHighlightContext(projects),
+    [projects, snapshotRevision]
+  );
 
   const featuredMakers = useMemo(() => {
     const seen = new Set<string>();
@@ -298,8 +337,27 @@ export function HomePage({
         language={language}
         projects={projects}
         likedIds={likedIds}
+        userClaims={userClaims}
         onOpenDetail={onOpenDetail}
         onToggleLike={onToggleLike}
+        onNavigate={onNavigate}
+      />
+
+      {/* Live Community Recent Activity Feed */}
+      <RecentActivityWidget
+        language={language}
+        projects={projects}
+        firestoreActivities={firestoreActivities}
+        localActivities={recentActivities}
+        onOpenDetail={onOpenDetail}
+      />
+
+      {/* Trending: 24h GitHub Star Growth */}
+      <HomeTrending24hSection
+        language={language}
+        catalogProjects={projects}
+        snapshotRevision={snapshotRevision}
+        onOpenDetail={onOpenDetail}
         onNavigate={onNavigate}
       />
 
@@ -370,6 +428,9 @@ export function HomePage({
               language={language}
               isLiked={likedIds.has(proj.id)}
               isBookmarked={bookmarkedIds.has(proj.id)}
+              engagementTrending={engagementTrendingMap.get(proj.id)}
+              highlightContext={highlightContext}
+              makerClaims={userClaims}
               onOpenDetail={onOpenDetail}
               onToggleLike={onToggleLike}
               onToggleBookmark={onToggleBookmark}
@@ -409,6 +470,9 @@ export function HomePage({
                   language={language}
                   isLiked={likedIds.has(proj.id)}
                   isBookmarked={bookmarkedIds.has(proj.id)}
+                  engagementTrending={engagementTrendingMap.get(proj.id)}
+                  highlightContext={highlightContext}
+                  makerClaims={userClaims}
                   onOpenDetail={onOpenDetail}
                   onToggleLike={onToggleLike}
                   onToggleBookmark={onToggleBookmark}
@@ -517,6 +581,9 @@ export function HomePage({
               language={language}
               isLiked={likedIds.has(proj.id)}
               isBookmarked={bookmarkedIds.has(proj.id)}
+              engagementTrending={engagementTrendingMap.get(proj.id)}
+              highlightContext={highlightContext}
+              makerClaims={userClaims}
               onOpenDetail={onOpenDetail}
               onToggleLike={onToggleLike}
               onToggleBookmark={onToggleBookmark}

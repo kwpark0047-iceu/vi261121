@@ -80,6 +80,41 @@ export const UI_STRINGS: Record<
       promoEmptyFilterTitle: string;
       promoEmptyFilterBody: string;
       promoCountLiveSuffix: string;
+      trending24hTitle: string;
+      trending24hSubtitle: string;
+      trending24hAllLanguages: string;
+      trending24hRefreshButton: string;
+      trending24hViewLeaderboard: string;
+      trending24hStarsSuffix: string;
+      trending24hSourceSnapshot: string;
+      trending24hSourceRate: string;
+      trending24hOpenCatalog: string;
+      trending24hOpenGithub: string;
+      trending24hEmptyTitle: string;
+      trending24hEmptyBody: string;
+      trending24hResetLanguage: string;
+      trending24hErrorTitle: string;
+      trending24hRetryButton: string;
+      recentActivityTitle: string;
+      recentActivitySubtitle: string;
+      recentActivityFilterAll: string;
+      recentActivityFilterSubmissions: string;
+      recentActivityFilterLikes: string;
+      recentActivityFilterBookmarks: string;
+      recentActivityAutoScrollOn: string;
+      recentActivityAutoScrollPaused: string;
+      recentActivityActionSubmitted: string;
+      recentActivityActionLiked: string;
+      recentActivityActionBookmarked: string;
+      recentActivityCommunityActor: string;
+      recentActivityGuestActor: string;
+      recentActivityLiveLabel: string;
+      recentActivityDeltaSuffix: string;
+      recentActivityOpenProject: string;
+      recentActivityEmptyTitle: string;
+      recentActivityEmptyBody: string;
+      recentActivityLiveCountSuffix: string;
+      recentActivityShowAllButton: string;
     };
     discover: {
       title: string;
@@ -170,6 +205,41 @@ export const UI_STRINGS: Record<
       reposCountLabel: string;
       clickHint: string;
     };
+    discoveryMap: {
+      title: string;
+      subtitle: string;
+      toggleExpand: string;
+      toggleCollapse: string;
+      scopeEcosystem: string;
+      scopeDirectory: string;
+      scopeVerifiedMakers: string;
+      allTypes: string;
+      xAxisLabel: string;
+      yAxisLabel: string;
+      quadrantLeaders: string;
+      quadrantActiveBuilders: string;
+      quadrantEstablished: string;
+      quadrantEmerging: string;
+      spotlightHeading: string;
+      starsMetricLabel: string;
+      activityMetricLabel: string;
+      dailyVelocityLabel: string;
+      recencyLabel: string;
+      todayLabel: string;
+      daysAgoSuffix: string;
+      sourceDirectory: string;
+      sourceEnriched: string;
+      sourceEcosystem: string;
+      inspectButton: string;
+      openGithubButton: string;
+      emptyTitle: string;
+      emptyBody: string;
+      resetMapFilter: string;
+      resetFiltersButton: string;
+      pointsCountLabel: string;
+      interactionHint: string;
+      medianGuideNote: string;
+    };
     card: {
       githubStars: string;
       internalLikes: string;
@@ -185,8 +255,45 @@ export const UI_STRINGS: Record<
       bookmarkAction: string;
       trendingBadge: string;
       trending7dTooltip: string;
+      trendingEngagementTooltip: string;
       compareAdd: string;
       compareSelected: string;
+    };
+    highlights: {
+      containerLabel: string;
+      featured: string;
+      newArrival: string;
+      highActivity: string;
+      featuredTooltip: string;
+      newArrivalTooltip: string;
+      highActivityTooltip: string;
+      highActivityStarsTooltip: string;
+      highActivitySignalsTooltip: string;
+    };
+    verification: {
+      claimedBadge: string;
+      claimedTooltip: string;
+      pendingBadge: string;
+      pendingTooltip: string;
+      unclaimedBadge: string;
+      panelTitleClaimed: string;
+      panelBodyClaimed: string;
+      panelTitlePending: string;
+      panelBodyPending: string;
+      panelTitleUnclaimed: string;
+      panelBodyUnclaimed: string;
+      attributionLabel: string;
+      methodLabel: string;
+      statusLabel: string;
+      statusClaimed: string;
+      statusPending: string;
+      statusUnclaimed: string;
+      ownerTag: string;
+      methodGithub: string;
+      methodDns: string;
+      methodDemo: string;
+      methodDirect: string;
+      claimCta: string;
     };
     compare: {
       trayTitle: string;
@@ -299,6 +406,96 @@ export const UI_STRINGS: Record<
       copyDirectLink: string;
       copyPromoPitch: string;
       copiedFeedback: string;
+      timelineTitle: string;
+      timelineSubtitle: string;
+      timelineFilterAll: string;
+      timelineFilterReleases: string;
+      timelineFilterCommits: string;
+      timelineFilterCreatorLogs: string;
+      timelineSortNewest: string;
+      timelineSortOldest: string;
+      timelineAddButton: string;
+      timelineCloseComposer: string;
+      timelineCadenceLabel: string;
+      timelineSpanDaysSuffix: string;
+      timelineGapSuffix: string;
+      timelineLoadingLabel: string;
+      timelineRepoErrorNotice: string;
+      timelineNoRepoNote: string;
+      timelineEmptyTitle: string;
+      timelineEmptyBody: string;
+      timelineEmptyCreatorBody: string;
+      timelineAuthNoticeSignedOut: string;
+      timelineAuthNoticeNotOwner: string;
+      timelineSignInCta: string;
+      timelineClaimCta: string;
+      timelineKindLabel: string;
+      timelineKindRelease: string;
+      timelineKindLaunch: string;
+      timelineKindFeature: string;
+      timelineKindUpdate: string;
+      timelineKindFix: string;
+      timelineVersionLabel: string;
+      timelineDateLabel: string;
+      timelineEntryTitleLabel: string;
+      timelineSummaryLabel: string;
+      timelineUrlLabel: string;
+      timelinePublishButton: string;
+      timelinePublishingButton: string;
+      timelineDeleteButton: string;
+      timelineExternalLink: string;
+      timelineSourceRelease: string;
+      timelineSourceCommit: string;
+      timelineSourceCreator: string;
+      timelineSourceCatalog: string;
+      volatilityTitle: string;
+      volatilitySubtitle: string;
+      volatilityModePace: string;
+      volatilityModeSwing: string;
+      volatilityMetricStdDev: string;
+      volatilityMetricNetVibe: string;
+      volatilityMetricStarRate: string;
+      volatilityMetricMaxSwing: string;
+      volatilityVerdictLabel: string;
+      volatilityVerdictKeepingPace: string;
+      volatilityVerdictKeepingPaceDesc: string;
+      volatilityVerdictSentimentLeading: string;
+      volatilityVerdictSentimentLeadingDesc: string;
+      volatilityVerdictAdoptionOutpacing: string;
+      volatilityVerdictAdoptionOutpacingDesc: string;
+      volatilityVerdictUnsynced: string;
+      volatilityVerdictUnsyncedDesc: string;
+      volatilityVerdictBaseline: string;
+      volatilityVerdictBaselineDesc: string;
+      volatilityLegendVibeScore: string;
+      volatilityLegendBand: string;
+      volatilityLegendStarRate: string;
+      volatilityLegendSwing: string;
+      volatilityLeftAxisLabel: string;
+      volatilityRightAxisLabel: string;
+      volatilitySwingAxisLabel: string;
+      volatilityScrubHint: string;
+      volatilityDateLabel: string;
+      volatilityVibeDeltaLabel: string;
+      volatilityStarGainLabel: string;
+      insightsTitle: string;
+      insightsSubtitle: string;
+      insightsModeDaily: string;
+      insightsModeCumulative: string;
+      insightsKpiLikes7d: string;
+      insightsKpiBookmarks7d: string;
+      insightsKpiBookmarkShare: string;
+      insightsKpiPeakDay: string;
+      insightsTotalPrefix: string;
+      insightsAvgPerDay: string;
+      insightsNoPeakDay: string;
+      insightsScrubHint: string;
+      insightsDateLabel: string;
+      insightsCombinedLabel: string;
+      insightsMixTitle: string;
+      insightsEmptyTitle: string;
+      insightsEmptyHint: string;
+      insightsAxisCount: string;
     };
     submit: {
       title: string;
@@ -508,6 +705,41 @@ export const UI_STRINGS: Record<
       promoEmptyFilterTitle: '해당 조건의 등록 프로젝트가 아직 없습니다',
       promoEmptyFilterBody: '지금 첫 번째 프로젝트를 등록하고 메인 페이지 홍보 쇼케이스 상단에 노출해 보세요.',
       promoCountLiveSuffix: '건 등록됨',
+      trending24hTitle: '최근 24시간 GitHub 스타 급상승',
+      trending24hSubtitle: '공식 GitHub API 일일 스타 스냅샷과 24시간 성장 속도를 기준으로 지금 가장 빠르게 주목받는 프로젝트를 실시간 집계합니다.',
+      trending24hAllLanguages: '전체 언어',
+      trending24hRefreshButton: '새로고침',
+      trending24hViewLeaderboard: '전체 스타 랭킹 보기',
+      trending24hStarsSuffix: '/ 24h',
+      trending24hSourceSnapshot: '24시간 실측 스냅샷',
+      trending24hSourceRate: '24시간 스타 증가율',
+      trending24hOpenCatalog: '상세 보기',
+      trending24hOpenGithub: 'GitHub',
+      trending24hEmptyTitle: '선택한 언어의 24시간 급상승 프로젝트가 없습니다',
+      trending24hEmptyBody: '전체 언어로 전환하거나 실시간 데이터를 새로고침해 보세요.',
+      trending24hResetLanguage: '전체 언어 보기',
+      trending24hErrorTitle: '실시간 24시간 GitHub 지표를 불러오지 못했습니다',
+      trending24hRetryButton: '다시 시도',
+      recentActivityTitle: '실시간 커뮤니티 활동 피드',
+      recentActivitySubtitle: '신규 프로젝트 등록, 좋아요, 북마크 등 VibeAtlas 전역의 최근 사용자 참여 흐름',
+      recentActivityFilterAll: '전체',
+      recentActivityFilterSubmissions: '신규 등록',
+      recentActivityFilterLikes: '좋아요',
+      recentActivityFilterBookmarks: '북마크',
+      recentActivityAutoScrollOn: '자동 스크롤',
+      recentActivityAutoScrollPaused: '일시 정지',
+      recentActivityActionSubmitted: '새 프로젝트를 등록했습니다',
+      recentActivityActionLiked: '좋아요를 눌렀습니다',
+      recentActivityActionBookmarked: '북마크에 저장했습니다',
+      recentActivityCommunityActor: 'VibeAtlas 커뮤니티',
+      recentActivityGuestActor: '게스트 방문자',
+      recentActivityLiveLabel: '실시간',
+      recentActivityDeltaSuffix: '건 최근 반응',
+      recentActivityOpenProject: '상세',
+      recentActivityEmptyTitle: '선택한 유형의 최근 활동이 없습니다',
+      recentActivityEmptyBody: '프로젝트를 등록하거나 좋아요·북마크를 누르면 실시간 활동이 이곳에 표시됩니다.',
+      recentActivityLiveCountSuffix: '건의 활동',
+      recentActivityShowAllButton: '전체 활동 보기',
     },
     discover: {
       title: '프로젝트 & 리소스 탐색',
@@ -598,6 +830,41 @@ export const UI_STRINGS: Record<
       reposCountLabel: '개 활성 저장소',
       clickHint: '버블을 선택해 저장소 상세 정보를 확인하세요',
     },
+    discoveryMap: {
+      title: '생태계 비주얼 탐색 맵 (Scatter Map)',
+      subtitle: 'GitHub 스타 규모(X축·로그)와 최근 업데이트·커뮤니티 활동 빈도(Y축) 기준으로 프로젝트를 탐색하세요.',
+      toggleExpand: '탐색 맵 펼치기',
+      toggleCollapse: '탐색 맵 접기',
+      scopeEcosystem: '전체 생태계',
+      scopeDirectory: '디렉터리 필터 결과',
+      scopeVerifiedMakers: '메이커 인증만',
+      allTypes: '전체 유형',
+      xAxisLabel: 'GitHub 스타 (로그 스케일)',
+      yAxisLabel: '활동 빈도 지수 (0–100)',
+      quadrantLeaders: '생태계 리더',
+      quadrantActiveBuilders: '고활동 인디 · 신예',
+      quadrantEstablished: '안정 · 성숙기',
+      quadrantEmerging: '초기 · 니치',
+      spotlightHeading: '선택된 노드 스포트라이트',
+      starsMetricLabel: 'GitHub 스타',
+      activityMetricLabel: '활동 빈도',
+      dailyVelocityLabel: '일일 스타 속도',
+      recencyLabel: '최근 활동',
+      todayLabel: '오늘',
+      daysAgoSuffix: '일 전',
+      sourceDirectory: 'VibeAtlas 등록',
+      sourceEnriched: '디렉터리 + 실시간 GitHub',
+      sourceEcosystem: 'GitHub AI 생태계',
+      inspectButton: '상세 보기',
+      openGithubButton: 'GitHub 열기',
+      emptyTitle: '현재 조건에 맞는 맵 노드가 없습니다',
+      emptyBody: '범위나 유형 필터를 전체로 전환하면 생태계 전체 분포를 다시 탐색할 수 있습니다.',
+      resetMapFilter: '맵 필터 초기화',
+      resetFiltersButton: '디렉터리 필터 초기화',
+      pointsCountLabel: '개 프로젝트 매핑됨',
+      interactionHint: '점(노드)에 마우스를 올리거나 클릭해 상세 지표를 확인하세요',
+      medianGuideNote: '점선: 중앙 기준선',
+    },
     card: {
       githubStars: 'GitHub 스타',
       internalLikes: '좋아요',
@@ -613,8 +880,48 @@ export const UI_STRINGS: Record<
       bookmarkAction: '북마크',
       trendingBadge: '트렌딩',
       trending7dTooltip: '최근 7일간 GitHub 스타 +{count} 상승',
+      trendingEngagementTooltip: '최근 7일간 좋아요 +{likes} · 북마크 +{bookmarks} (총 +{total} 증가)',
       compareAdd: '비교 담기',
       compareSelected: '비교 선택됨',
+    },
+    highlights: {
+      containerLabel: '프로젝트 주요 배지',
+      featured: '주요 추천',
+      newArrival: '신규 등록',
+      highActivity: '활발한 활동',
+      featuredTooltip: '검증된 메타데이터와 커뮤니티 평가를 기준으로 선정된 대표 추천 프로젝트입니다.',
+      newArrivalTooltip: '최근 등록된 신규 프로젝트입니다 ({date}).',
+      highActivityTooltip: '최근 커밋·커뮤니티 참여 활동이 활발한 프로젝트입니다.',
+      highActivityStarsTooltip: '최근 7일간 GitHub 스타 +{count} 상승으로 높은 활동성을 기록했습니다.',
+      highActivitySignalsTooltip: '최근 7일간 좋아요·북마크 +{count}건의 활발한 커뮤니티 반응이 모였습니다.',
+    },
+    verification: {
+      claimedBadge: '메이커 인증',
+      claimedTooltip: '제작자가 소유권을 직접 인증하고 관리하는 프로젝트입니다.',
+      pendingBadge: '소유권 심사 중',
+      pendingTooltip: '메이커 소유권 인증 요청이 접수되어 확인 중입니다.',
+      unclaimedBadge: '미인증 리스팅',
+      panelTitleClaimed: '메이커 소유권 인증 완료',
+      panelBodyClaimed:
+        '공식 제작자가 VibeAtlas에서 소유권을 직접 인증했습니다. 공식 링크, 라이선스 및 메이커 귀속 정보의 신뢰도가 검증되었습니다.',
+      panelTitlePending: '메이커 소유권 인증 심사 중',
+      panelBodyPending:
+        '소유권 인증 증빙이 접수되어 검토 중입니다. 승인이 완료되면 프로젝트 카드와 상세 화면에 메이커 인증 배지가 표시됩니다.',
+      panelTitleUnclaimed: '메이커 소유권 미인증 리스팅',
+      panelBodyUnclaimed:
+        '공개 저장소 동기화 또는 커뮤니티 큐레이션으로 등록된 항목입니다. 공식 제작자라면 소유권 인증을 제출해 신뢰 배지를 받을 수 있습니다.',
+      attributionLabel: '메이커',
+      methodLabel: '인증 방식',
+      statusLabel: '상태',
+      statusClaimed: '소유권 인증됨',
+      statusPending: '심사 대기 중',
+      statusUnclaimed: '미인증',
+      ownerTag: '내 등록',
+      methodGithub: 'GitHub 저장소 관리자',
+      methodDns: '도메인 DNS TXT',
+      methodDemo: '라이브 데모 메타 태그',
+      methodDirect: '메이커 직접 등록 · 검증',
+      claimCta: '소유권 인증하기',
     },
     compare: {
       trayTitle: '프로젝트 비교함',
@@ -727,6 +1034,96 @@ export const UI_STRINGS: Record<
       copyDirectLink: '직접 링크 복사',
       copyPromoPitch: '홍보 문구 복사',
       copiedFeedback: '복사 완료',
+      timelineTitle: '프로젝트 타임라인 & 마일스톤',
+      timelineSubtitle: 'GitHub 공식 릴리스·커밋 활동과 메이커가 직접 기록한 마일스톤을 시간순으로 시각화합니다.',
+      timelineFilterAll: '전체',
+      timelineFilterReleases: '릴리스',
+      timelineFilterCommits: '커밋',
+      timelineFilterCreatorLogs: '메이커 로그',
+      timelineSortNewest: '최신순',
+      timelineSortOldest: '오래된순',
+      timelineAddButton: '마일스톤 기록',
+      timelineCloseComposer: '입력 닫기',
+      timelineCadenceLabel: '활동 주기 분포',
+      timelineSpanDaysSuffix: '일 구간',
+      timelineGapSuffix: '일 간격',
+      timelineLoadingLabel: 'GitHub 저장소 릴리스·커밋 이력을 불러오는 중...',
+      timelineRepoErrorNotice: 'GitHub 저장소 마일스톤을 일시적으로 불러오지 못해 디렉터리·메이커 기록만 표시합니다.',
+      timelineNoRepoNote: '연결된 GitHub 저장소가 없어 디렉터리 및 메이커 기록을 기준으로 타임라인을 표시합니다.',
+      timelineEmptyTitle: '선택한 분류에 해당하는 마일스톤이 없습니다',
+      timelineEmptyBody: '전체 탭으로 전환하면 저장소 및 디렉터리 이력을 확인할 수 있습니다.',
+      timelineEmptyCreatorBody: '메이커가 아직 별도 업데이트 로그를 등록하지 않았습니다.',
+      timelineAuthNoticeSignedOut: '공식 마일스톤 로그를 게시하려면 프로젝트 소유자 계정으로 Google 로그인해야 합니다.',
+      timelineAuthNoticeNotOwner: '등록된 프로젝트 소유자 또는 관리자만 공식 타임라인 로그를 추가할 수 있습니다. 제작자라면 상단에서 소유권 인증을 제출하세요.',
+      timelineSignInCta: 'Google 로그인',
+      timelineClaimCta: '소유권 인증 열기',
+      timelineKindLabel: '유형',
+      timelineKindRelease: '정식 릴리스',
+      timelineKindLaunch: '신규 런칭',
+      timelineKindFeature: '기능 추가',
+      timelineKindUpdate: '업데이트',
+      timelineKindFix: '버그·보안 수정',
+      timelineVersionLabel: '버전 태그 (선택)',
+      timelineDateLabel: '발생 일자',
+      timelineEntryTitleLabel: '마일스톤 제목 *',
+      timelineSummaryLabel: '세부 요약 (선택)',
+      timelineUrlLabel: '참고 URL / 릴리스 노트 (선택)',
+      timelinePublishButton: '타임라인에 게시',
+      timelinePublishingButton: '게시 중...',
+      timelineDeleteButton: '마일스톤 삭제',
+      timelineExternalLink: '원문 보기',
+      timelineSourceRelease: 'GitHub 릴리스',
+      timelineSourceCommit: '커밋',
+      timelineSourceCreator: '메이커 로그',
+      timelineSourceCatalog: '디렉터리 이력',
+      volatilityTitle: '바이브 스코어 변동성 vs GitHub 스타 성장률',
+      volatilitySubtitle: '시간에 따른 커뮤니티 체감 점수 변동폭(±σ 밴드)과 저장소 일일 스타 증가율(D3 이중 추세선)을 비교합니다.',
+      volatilityModePace: '이중 추세 비교',
+      volatilityModeSwing: '일간 변동폭',
+      volatilityMetricStdDev: '점수 변동성 (σ)',
+      volatilityMetricNetVibe: '14일 바이브 변화',
+      volatilityMetricStarRate: '14일 스타 성장률',
+      volatilityMetricMaxSwing: '최대 일간 등락',
+      volatilityVerdictLabel: '채택 속도 대비 정서 정렬',
+      volatilityVerdictKeepingPace: '기술 채택과 보조 일치',
+      volatilityVerdictKeepingPaceDesc: '커뮤니티 바이브 스코어와 GitHub 스타 증가율이 균형 있게 함께 상승하고 있습니다.',
+      volatilityVerdictSentimentLeading: '커뮤니티 정서 선행 · 변동 확대',
+      volatilityVerdictSentimentLeadingDesc: '내부 바이브 관심도나 변동성이 최근 저장소 스타 성장 속도보다 빠르게 움직이고 있습니다.',
+      volatilityVerdictAdoptionOutpacing: '기술 채택이 정서 상회',
+      volatilityVerdictAdoptionOutpacingDesc: 'GitHub 스타 채택 속도가 VibeAtlas 내 커뮤니티 모멘텀보다 빠르게 앞서가고 있습니다.',
+      volatilityVerdictUnsynced: 'GitHub 미동기화 상태',
+      volatilityVerdictUnsyncedDesc: '내부 바이브 변동성은 실시간 추적 중이며, GitHub 동기화 시 스타 성장률 비교선이 활성화됩니다.',
+      volatilityVerdictBaseline: '초기 단일 스냅샷 기준선',
+      volatilityVerdictBaselineDesc: '현재 시점의 GitHub 스타 기준선이 기록되었습니다. 다중 일자 동기화 누적 시 일일 성장률이 비교됩니다.',
+      volatilityLegendVibeScore: '바이브 스코어 (0–100)',
+      volatilityLegendBand: '변동성 밴드 (±σ)',
+      volatilityLegendStarRate: '일간 스타 성장률 (%)',
+      volatilityLegendSwing: '일간 바이브 등락폭 (Δ)',
+      volatilityLeftAxisLabel: '바이브 스코어',
+      volatilityRightAxisLabel: '스타 성장률 (%)',
+      volatilitySwingAxisLabel: '일간 변동 (Δpt)',
+      volatilityScrubHint: '각 날짜 노드를 가리키거나 선택해 세부 변동을 확인하세요',
+      volatilityDateLabel: '기준일',
+      volatilityVibeDeltaLabel: '전일 대비 바이브',
+      volatilityStarGainLabel: '일간 스타 증감',
+      insightsTitle: '프로젝트 인사이트 · 최근 7일 좋아요 & 북마크',
+      insightsSubtitle: '최근 7일간 내부 좋아요(즉각 호응)와 북마크(저장 의도)의 일별 증감 및 누적 추세를 D3로 시각화합니다.',
+      insightsModeDaily: '일별 증감',
+      insightsModeCumulative: '7일 누적 추이',
+      insightsKpiLikes7d: '7일 좋아요 증가',
+      insightsKpiBookmarks7d: '7일 북마크 증가',
+      insightsKpiBookmarkShare: '북마크 저장 비중',
+      insightsKpiPeakDay: '최고 참여일',
+      insightsTotalPrefix: '누적',
+      insightsAvgPerDay: '일 평균',
+      insightsNoPeakDay: '활동 없음',
+      insightsScrubHint: '각 날짜 막대나 노드를 가리키거나 선택해 세부 수치를 확인하세요',
+      insightsDateLabel: '기준일',
+      insightsCombinedLabel: '합계',
+      insightsMixTitle: '7일 반응 구성비',
+      insightsEmptyTitle: '최근 7일간 기록된 좋아요·북마크 활동이 아직 없습니다.',
+      insightsEmptyHint: '좋아요 또는 북마크를 남기면 일별 커뮤니티 참여 추이가 즉시 반영됩니다.',
+      insightsAxisCount: '건수',
     },
     submit: {
       title: '새 프로젝트 등록',
@@ -935,6 +1332,41 @@ export const UI_STRINGS: Record<
       promoEmptyFilterTitle: 'No matching submitted launches yet',
       promoEmptyFilterBody: 'Submit your project now to showcase it at the top of the VibeAtlas main page.',
       promoCountLiveSuffix: 'submitted',
+      trending24hTitle: 'Trending · 24h GitHub Star Growth',
+      trending24hSubtitle: 'Projects surging fastest in GitHub stars over the last 24 hours from live API snapshots and verified daily star velocity.',
+      trending24hAllLanguages: 'All Languages',
+      trending24hRefreshButton: 'Refresh',
+      trending24hViewLeaderboard: 'View Star Leaderboard',
+      trending24hStarsSuffix: '/ 24h',
+      trending24hSourceSnapshot: '24h Snapshot Delta',
+      trending24hSourceRate: '24h Star Velocity',
+      trending24hOpenCatalog: 'Open Detail',
+      trending24hOpenGithub: 'GitHub',
+      trending24hEmptyTitle: 'No 24h trending projects match this language',
+      trending24hEmptyBody: 'Switch back to all languages or refresh live GitHub signals.',
+      trending24hResetLanguage: 'Show All Languages',
+      trending24hErrorTitle: 'Could not load live 24h GitHub growth signals',
+      trending24hRetryButton: 'Retry',
+      recentActivityTitle: 'Recent Activity',
+      recentActivitySubtitle: 'Live, scrolling feed of new project submissions, recent likes, and bookmarks across VibeAtlas.',
+      recentActivityFilterAll: 'All',
+      recentActivityFilterSubmissions: 'Submissions',
+      recentActivityFilterLikes: 'Likes',
+      recentActivityFilterBookmarks: 'Bookmarks',
+      recentActivityAutoScrollOn: 'Auto-scroll',
+      recentActivityAutoScrollPaused: 'Paused',
+      recentActivityActionSubmitted: 'submitted',
+      recentActivityActionLiked: 'liked',
+      recentActivityActionBookmarked: 'bookmarked',
+      recentActivityCommunityActor: 'VibeAtlas Community',
+      recentActivityGuestActor: 'Guest Visitor',
+      recentActivityLiveLabel: 'Live',
+      recentActivityDeltaSuffix: 'recent',
+      recentActivityOpenProject: 'Inspect',
+      recentActivityEmptyTitle: 'No recent activity in this category',
+      recentActivityEmptyBody: 'Submit a project, or click like or bookmark on any listing to see updates stream here.',
+      recentActivityLiveCountSuffix: 'events',
+      recentActivityShowAllButton: 'Show All Activity',
     },
     discover: {
       title: 'Discover Projects & Resources',
@@ -1025,6 +1457,41 @@ export const UI_STRINGS: Record<
       reposCountLabel: 'active repos',
       clickHint: 'Hover or click any bubble to inspect repository details',
     },
+    discoveryMap: {
+      title: 'Ecosystem Visual Discovery Map',
+      subtitle: 'D3 scatter plot positioning projects by GitHub stars (X-axis, log scale) and activity frequency (Y-axis).',
+      toggleExpand: 'Expand discovery map',
+      toggleCollapse: 'Collapse discovery map',
+      scopeEcosystem: 'Full Ecosystem',
+      scopeDirectory: 'Directory Filtered',
+      scopeVerifiedMakers: 'Verified Makers',
+      allTypes: 'All Types',
+      xAxisLabel: 'GitHub Stars (symlog)',
+      yAxisLabel: 'Activity Frequency (0–100)',
+      quadrantLeaders: 'Ecosystem Leaders',
+      quadrantActiveBuilders: 'Active Rising Builders',
+      quadrantEstablished: 'Established Steady',
+      quadrantEmerging: 'Emerging / Niche',
+      spotlightHeading: 'Node Spotlight',
+      starsMetricLabel: 'GitHub Stars',
+      activityMetricLabel: 'Activity Freq',
+      dailyVelocityLabel: 'Daily Velocity',
+      recencyLabel: 'Last Active',
+      todayLabel: 'Today',
+      daysAgoSuffix: 'd ago',
+      sourceDirectory: 'VibeAtlas Directory',
+      sourceEnriched: 'Directory + Live GitHub',
+      sourceEcosystem: 'GitHub AI Ecosystem',
+      inspectButton: 'Inspect Detail',
+      openGithubButton: 'Open GitHub',
+      emptyTitle: 'No projects match this map selection',
+      emptyBody: 'Switch back to All Types or reset directory filters to explore the full ecosystem scatter map.',
+      resetMapFilter: 'Reset Map Filter',
+      resetFiltersButton: 'Reset Directory Filters',
+      pointsCountLabel: 'mapped nodes',
+      interactionHint: 'Hover or click any node to inspect metrics and quadrant fit',
+      medianGuideNote: 'Dashed: median split',
+    },
     card: {
       githubStars: 'GitHub Stars',
       internalLikes: 'Likes',
@@ -1040,8 +1507,48 @@ export const UI_STRINGS: Record<
       bookmarkAction: 'Bookmark',
       trendingBadge: 'Trending',
       trending7dTooltip: 'Gained +{count} GitHub stars in the last 7 days',
+      trendingEngagementTooltip: 'Gained +{likes} likes and +{bookmarks} bookmarks (+{total}) in the last 7 days',
       compareAdd: 'Compare',
       compareSelected: 'In Compare',
+    },
+    highlights: {
+      containerLabel: 'Project highlights',
+      featured: 'Featured',
+      newArrival: 'New Arrival',
+      highActivity: 'High Activity',
+      featuredTooltip: 'Editorial spotlight based on verified metadata and top community standing.',
+      newArrivalTooltip: 'Recently added to VibeAtlas on {date}.',
+      highActivityTooltip: 'Sustained recent engagement and repository update momentum.',
+      highActivityStarsTooltip: 'High repository momentum with +{count} GitHub stars in the last 7 days.',
+      highActivitySignalsTooltip: 'High community momentum with +{count} likes and bookmarks in the last 7 days.',
+    },
+    verification: {
+      claimedBadge: 'Maker Verified',
+      claimedTooltip: 'Maker identity and project ownership are verified on VibeAtlas.',
+      pendingBadge: 'Claim Pending',
+      pendingTooltip: 'Ownership verification claim submitted and currently under review.',
+      unclaimedBadge: 'Unclaimed',
+      panelTitleClaimed: 'Verified Maker Ownership',
+      panelBodyClaimed:
+        'The official maker has claimed and verified this listing on VibeAtlas, confirming authentic links, license attribution, and stewardship.',
+      panelTitlePending: 'Maker Claim Under Review',
+      panelBodyPending:
+        'An ownership verification claim has been submitted and is awaiting review. Once approved, the verified maker seal appears on all cards.',
+      panelTitleUnclaimed: 'Unclaimed Directory Listing',
+      panelBodyUnclaimed:
+        'Indexed from public metadata or community curation. If you built this project, claim ownership to display the verified maker seal.',
+      attributionLabel: 'Maker',
+      methodLabel: 'Method',
+      statusLabel: 'Status',
+      statusClaimed: 'Claimed & Verified',
+      statusPending: 'Pending Verification',
+      statusUnclaimed: 'Not Yet Claimed',
+      ownerTag: 'Your Listing',
+      methodGithub: 'GitHub Repository',
+      methodDns: 'Domain DNS TXT',
+      methodDemo: 'Live Demo Meta Tag',
+      methodDirect: 'Verified Maker Submission',
+      claimCta: 'Claim This Project',
     },
     compare: {
       trayTitle: 'Compare Projects',
@@ -1154,6 +1661,96 @@ export const UI_STRINGS: Record<
       copyDirectLink: 'Copy Share Link',
       copyPromoPitch: 'Copy Promo Copy',
       copiedFeedback: 'Copied',
+      timelineTitle: 'Project Timeline & Milestones',
+      timelineSubtitle: 'Chronological vertical timeline combining GitHub releases, recent repository commits, and creator-published logs.',
+      timelineFilterAll: 'All',
+      timelineFilterReleases: 'Releases',
+      timelineFilterCommits: 'Commits',
+      timelineFilterCreatorLogs: 'Creator Logs',
+      timelineSortNewest: 'Newest first',
+      timelineSortOldest: 'Oldest first',
+      timelineAddButton: 'Log Milestone',
+      timelineCloseComposer: 'Close Form',
+      timelineCadenceLabel: 'Activity Cadence',
+      timelineSpanDaysSuffix: 'd span',
+      timelineGapSuffix: 'd interval',
+      timelineLoadingLabel: 'Fetching repository releases and commits from GitHub...',
+      timelineRepoErrorNotice: 'GitHub repository activity could not be loaded right now; showing catalog and creator entries.',
+      timelineNoRepoNote: 'No linked GitHub repository — showing directory provenance and creator logs.',
+      timelineEmptyTitle: 'No milestones match this filter',
+      timelineEmptyBody: 'Switch back to All to inspect repository and directory milestones.',
+      timelineEmptyCreatorBody: 'No creator-added milestone logs have been published for this listing yet.',
+      timelineAuthNoticeSignedOut: 'Sign in with Google as the project owner to publish official milestone logs.',
+      timelineAuthNoticeNotOwner: 'Only the registered project owner or an administrator can publish creator logs. Submit an ownership claim above if you built this project.',
+      timelineSignInCta: 'Sign in with Google',
+      timelineClaimCta: 'Open Ownership Claim',
+      timelineKindLabel: 'Milestone Type',
+      timelineKindRelease: 'Release',
+      timelineKindLaunch: 'Launch',
+      timelineKindFeature: 'Feature',
+      timelineKindUpdate: 'Update',
+      timelineKindFix: 'Fix',
+      timelineVersionLabel: 'Version Tag (optional)',
+      timelineDateLabel: 'Date',
+      timelineEntryTitleLabel: 'Milestone Title *',
+      timelineSummaryLabel: 'Summary (optional)',
+      timelineUrlLabel: 'Reference URL (optional)',
+      timelinePublishButton: 'Publish Milestone',
+      timelinePublishingButton: 'Publishing...',
+      timelineDeleteButton: 'Delete milestone',
+      timelineExternalLink: 'View Source',
+      timelineSourceRelease: 'GitHub Release',
+      timelineSourceCommit: 'Commit',
+      timelineSourceCreator: 'Creator Log',
+      timelineSourceCatalog: 'Catalog Event',
+      volatilityTitle: 'Vibe Score Volatility vs. GitHub Star Growth Rate',
+      volatilitySubtitle: 'D3 dual-trend analysis pairing Vibe Score dispersion (±σ band) against daily repository star growth rate.',
+      volatilityModePace: 'Dual Trend',
+      volatilityModeSwing: 'Daily Swing',
+      volatilityMetricStdDev: 'Volatility (σ)',
+      volatilityMetricNetVibe: '14d Vibe Shift',
+      volatilityMetricStarRate: '14d Star Growth',
+      volatilityMetricMaxSwing: 'Peak Daily Swing',
+      volatilityVerdictLabel: 'Sentiment vs. Adoption Pace',
+      volatilityVerdictKeepingPace: 'Keeping Pace with Adoption',
+      volatilityVerdictKeepingPaceDesc: 'Community Vibe Score is climbing proportionally alongside external GitHub star growth.',
+      volatilityVerdictSentimentLeading: 'Sentiment Leading Adoption',
+      volatilityVerdictSentimentLeadingDesc: 'VibeAtlas community sentiment and swing intensity are moving faster than current star growth.',
+      volatilityVerdictAdoptionOutpacing: 'Adoption Outpacing Sentiment',
+      volatilityVerdictAdoptionOutpacingDesc: 'Repository star adoption is accelerating faster than internal VibeAtlas sentiment momentum.',
+      volatilityVerdictUnsynced: 'GitHub Unsynced',
+      volatilityVerdictUnsyncedDesc: 'Internal Vibe Score volatility is tracked live; sync GitHub to overlay real star growth rates.',
+      volatilityVerdictBaseline: 'Single Snapshot Baseline',
+      volatilityVerdictBaselineDesc: 'Baseline star count captured today. Daily star growth rates will plot across multi-day syncs.',
+      volatilityLegendVibeScore: 'Vibe Score (0–100)',
+      volatilityLegendBand: 'Volatility Band (±σ)',
+      volatilityLegendStarRate: 'Star Growth Rate (%)',
+      volatilityLegendSwing: 'Daily Vibe Delta (Δ)',
+      volatilityLeftAxisLabel: 'Vibe Score',
+      volatilityRightAxisLabel: 'Star Rate (%)',
+      volatilitySwingAxisLabel: 'Daily Vibe Δ',
+      volatilityScrubHint: 'Hover or select any date marker to inspect daily readings',
+      volatilityDateLabel: 'Date',
+      volatilityVibeDeltaLabel: 'Daily Vibe Δ',
+      volatilityStarGainLabel: 'Daily Star Gain',
+      insightsTitle: 'Project Insights · 7-Day Likes & Bookmarks',
+      insightsSubtitle: 'D3 visualization comparing daily community likes and high-intent bookmarks across the 7-day window.',
+      insightsModeDaily: 'Daily Gains',
+      insightsModeCumulative: '7d Cumulative',
+      insightsKpiLikes7d: '7d Likes Gained',
+      insightsKpiBookmarks7d: '7d Bookmarks Gained',
+      insightsKpiBookmarkShare: 'Bookmark Share',
+      insightsKpiPeakDay: 'Peak Activity Day',
+      insightsTotalPrefix: 'Total',
+      insightsAvgPerDay: 'avg/day',
+      insightsNoPeakDay: 'No activity',
+      insightsScrubHint: 'Hover or select a day bar to inspect exact daily metrics',
+      insightsDateLabel: 'Date',
+      insightsCombinedLabel: 'Combined',
+      insightsMixTitle: '7-Day Engagement Mix',
+      insightsEmptyTitle: 'No likes or bookmarks recorded in this 7-day window yet.',
+      insightsEmptyHint: 'Add a Like or Bookmark below to start tracking daily community velocity.',
+      insightsAxisCount: 'Count',
     },
     submit: {
       title: 'Submit a Project',
@@ -1362,6 +1959,41 @@ export const UI_STRINGS: Record<
       promoEmptyFilterTitle: '暂无符合该条件的提交项目',
       promoEmptyFilterBody: '立即提交您的第一个项目，即可自动展示在首页推广展示区。',
       promoCountLiveSuffix: '个已提交',
+      trending24hTitle: '热门趋势 · 24 小时 GitHub 星标飙升',
+      trending24hSubtitle: '基于 GitHub 官方接口快照与每日星标增长速率，实时追踪过去 24 小时星标增长最快的项目。',
+      trending24hAllLanguages: '全部语言',
+      trending24hRefreshButton: '刷新',
+      trending24hViewLeaderboard: '查看完整星标榜',
+      trending24hStarsSuffix: '/ 24h',
+      trending24hSourceSnapshot: '24h 快照增量',
+      trending24hSourceRate: '24h 增长速率',
+      trending24hOpenCatalog: '查看详情',
+      trending24hOpenGithub: 'GitHub',
+      trending24hEmptyTitle: '该语言下暂无 24 小时热门项目',
+      trending24hEmptyBody: '请切换至全部语言或刷新实时数据。',
+      trending24hResetLanguage: '查看全部语言',
+      trending24hErrorTitle: '暂时无法加载 24 小时 GitHub 增长数据',
+      trending24hRetryButton: '重试',
+      recentActivityTitle: '最近动态 · 实时社区信息流',
+      recentActivitySubtitle: '实时滚动展示 VibeAtlas 平台的新项目提交、最近点赞与收藏互动。',
+      recentActivityFilterAll: '全部',
+      recentActivityFilterSubmissions: '新提交',
+      recentActivityFilterLikes: '点赞',
+      recentActivityFilterBookmarks: '收藏',
+      recentActivityAutoScrollOn: '自动滚动',
+      recentActivityAutoScrollPaused: '已暂停',
+      recentActivityActionSubmitted: '提交了新项目',
+      recentActivityActionLiked: '点赞了',
+      recentActivityActionBookmarked: '收藏了',
+      recentActivityCommunityActor: 'VibeAtlas 社区',
+      recentActivityGuestActor: '访客用户',
+      recentActivityLiveLabel: '实时',
+      recentActivityDeltaSuffix: '次近期互动',
+      recentActivityOpenProject: '详情',
+      recentActivityEmptyTitle: '该分类下暂无最近动态',
+      recentActivityEmptyBody: '提交新项目或为项目点赞、收藏后，动态将实时显示在这里。',
+      recentActivityLiveCountSuffix: '条动态',
+      recentActivityShowAllButton: '查看全部动态',
     },
     discover: {
       title: '探索项目与资源',
@@ -1452,6 +2084,41 @@ export const UI_STRINGS: Record<
       reposCountLabel: '个活跃仓库',
       clickHint: '悬停或点击任意气泡以查看仓库详情',
     },
+    discoveryMap: {
+      title: '生态可视化探索散点图',
+      subtitle: '通过 D3 散点图按 GitHub 星标规模（X 轴对数）与近期活跃频率（Y 轴）直观探索项目分布。',
+      toggleExpand: '展开探索地图',
+      toggleCollapse: '收起探索地图',
+      scopeEcosystem: '全部生态',
+      scopeDirectory: '当前目录筛选',
+      scopeVerifiedMakers: '仅作者认证',
+      allTypes: '全部类型',
+      xAxisLabel: 'GitHub 星标（对数刻度）',
+      yAxisLabel: '活跃频率指数 (0–100)',
+      quadrantLeaders: '生态领先者',
+      quadrantActiveBuilders: '高活跃新锐',
+      quadrantEstablished: '成熟稳健型',
+      quadrantEmerging: '早期 · 细分',
+      spotlightHeading: '节点详情聚焦',
+      starsMetricLabel: 'GitHub 星标',
+      activityMetricLabel: '活跃频率',
+      dailyVelocityLabel: '日均星标速率',
+      recencyLabel: '最近活跃',
+      todayLabel: '今天',
+      daysAgoSuffix: '天前',
+      sourceDirectory: 'VibeAtlas 收录',
+      sourceEnriched: '目录 + 实时 GitHub',
+      sourceEcosystem: 'GitHub AI 生态',
+      inspectButton: '查看详情',
+      openGithubButton: '打开 GitHub',
+      emptyTitle: '当前筛选条件下暂无散点数据',
+      emptyBody: '切换回全部类型或重置目录筛选即可继续探索生态分布图。',
+      resetMapFilter: '重置图内筛选',
+      resetFiltersButton: '重置目录筛选',
+      pointsCountLabel: '个已映射节点',
+      interactionHint: '悬停或点击任意散点以查看详细指标与象限位置',
+      medianGuideNote: '虚线：中位数基准线',
+    },
     card: {
       githubStars: 'GitHub 星标',
       internalLikes: '点赞',
@@ -1467,8 +2134,48 @@ export const UI_STRINGS: Record<
       bookmarkAction: '收藏',
       trendingBadge: '热门趋势',
       trending7dTooltip: '近 7 天 GitHub 星标新增 +{count}',
+      trendingEngagementTooltip: '近 7 天点赞 +{likes}、收藏 +{bookmarks}（共 +{total}）',
       compareAdd: '加入对比',
       compareSelected: '已选对比',
+    },
+    highlights: {
+      containerLabel: '项目亮点徽章',
+      featured: '精选推荐',
+      newArrival: '最新上架',
+      highActivity: '高活跃度',
+      featuredTooltip: '基于已验证元数据与社区高评价入选的重点推荐项目。',
+      newArrivalTooltip: '近期新收录项目（{date}）。',
+      highActivityTooltip: '近期仓库更新与社区互动保持高活跃状态。',
+      highActivityStarsTooltip: '近 7 天 GitHub 星标新增 +{count}，热度持续走高。',
+      highActivitySignalsTooltip: '近 7 天站内点赞与收藏新增 +{count}，社区互动活跃。',
+    },
+    verification: {
+      claimedBadge: '作者已认证',
+      claimedTooltip: '该条目已由创作者本人认领并验证所有权。',
+      pendingBadge: '认领审核中',
+      pendingTooltip: '作者所有权认领申请已提交，正在审核确认。',
+      unclaimedBadge: '未认领',
+      panelTitleClaimed: '作者所有权已认证',
+      panelBodyClaimed:
+        '官方创作者已在 VibeAtlas 完成所有权认领与核验，确保外部链接、开源协议与作者归属信息的真实可靠。',
+      panelTitlePending: '作者所有权认领审核中',
+      panelBodyPending:
+        '所有权验证凭证已提交审核。审核通过后，该项目卡片与详情弹窗将展示作者认证徽章。',
+      panelTitleUnclaimed: '未认领目录条目',
+      panelBodyUnclaimed:
+        '该条目来自公开仓库同步或社区收录。如果您是该项目作者，可申请认领所有权以获得可信认证徽章。',
+      attributionLabel: '创作者',
+      methodLabel: '验证方式',
+      statusLabel: '状态',
+      statusClaimed: '已认领并核验',
+      statusPending: '等待验证审核',
+      statusUnclaimed: '尚未认领',
+      ownerTag: '我提交的',
+      methodGithub: 'GitHub 仓库维护者',
+      methodDns: '域名 DNS TXT',
+      methodDemo: '在线演示 Meta 标签',
+      methodDirect: '作者直投 · 已核验',
+      claimCta: '认领此项目',
     },
     compare: {
       trayTitle: '项目对比栏',
@@ -1581,6 +2288,96 @@ export const UI_STRINGS: Record<
       copyDirectLink: '复制直达链接',
       copyPromoPitch: '复制推广文案',
       copiedFeedback: '已复制',
+      timelineTitle: '项目时间线与里程碑',
+      timelineSubtitle: '按时间顺序呈现 GitHub 版本发布、近期仓库提交及作者手动发布的里程碑日志。',
+      timelineFilterAll: '全部',
+      timelineFilterReleases: '版本发布',
+      timelineFilterCommits: '代码提交',
+      timelineFilterCreatorLogs: '作者日志',
+      timelineSortNewest: '最新优先',
+      timelineSortOldest: '最早优先',
+      timelineAddButton: '记录里程碑',
+      timelineCloseComposer: '收起表单',
+      timelineCadenceLabel: '活跃周期分布',
+      timelineSpanDaysSuffix: '天跨度',
+      timelineGapSuffix: '天间隔',
+      timelineLoadingLabel: '正在从 GitHub 拉取发布记录与最近提交...',
+      timelineRepoErrorNotice: '暂时无法加载 GitHub 仓库动态，当前仅显示目录及作者日志记录。',
+      timelineNoRepoNote: '未绑定 GitHub 仓库 — 当前展示目录索引记录与作者里程碑。',
+      timelineEmptyTitle: '当前筛选下暂无里程碑记录',
+      timelineEmptyBody: '切回“全部”即可查看仓库发布、代码提交与目录动态。',
+      timelineEmptyCreatorBody: '该项目暂未发布作者手工里程碑日志。',
+      timelineAuthNoticeSignedOut: '请使用项目创建者账号通过 Google 登录后发布官方里程碑日志。',
+      timelineAuthNoticeNotOwner: '仅项目注册所有者或管理员可发布作者里程碑。如您为项目原作者，请先在上方提交所有权认证。',
+      timelineSignInCta: 'Google 登录',
+      timelineClaimCta: '前往所有权认证',
+      timelineKindLabel: '里程碑类型',
+      timelineKindRelease: '版本发布',
+      timelineKindLaunch: '正式上线',
+      timelineKindFeature: '新功能',
+      timelineKindUpdate: '迭代更新',
+      timelineKindFix: '问题修复',
+      timelineVersionLabel: '版本标签（选填）',
+      timelineDateLabel: '日期',
+      timelineEntryTitleLabel: '里程碑标题 *',
+      timelineSummaryLabel: '摘要说明（选填）',
+      timelineUrlLabel: '参考链接（选填）',
+      timelinePublishButton: '发布里程碑',
+      timelinePublishingButton: '发布中...',
+      timelineDeleteButton: '删除里程碑',
+      timelineExternalLink: '查看详情',
+      timelineSourceRelease: 'GitHub 发布',
+      timelineSourceCommit: '提交记录',
+      timelineSourceCreator: '作者日志',
+      timelineSourceCatalog: '目录事件',
+      volatilityTitle: 'Vibe 指数波动率 vs. GitHub 星标增速',
+      volatilitySubtitle: '通过 D3 双趋势线对比社区 Vibe 指数波动区间（±σ 包络带）与仓库每日星标增长率。',
+      volatilityModePace: '双趋势对比',
+      volatilityModeSwing: '单日波幅',
+      volatilityMetricStdDev: '波动率 (σ)',
+      volatilityMetricNetVibe: '14天 Vibe 变化',
+      volatilityMetricStarRate: '14天星标增速',
+      volatilityMetricMaxSwing: '最大单日波幅',
+      volatilityVerdictLabel: '社区情绪与技术采用节奏对比',
+      volatilityVerdictKeepingPace: '情绪与采用保持同步',
+      volatilityVerdictKeepingPaceDesc: '社区 Vibe 指数与外部 GitHub 星标增长速率同步稳健提升。',
+      volatilityVerdictSentimentLeading: '社区情绪领先 · 波动增强',
+      volatilityVerdictSentimentLeadingDesc: '站内 Vibe 关注度与短期波动幅度高于当前仓库星标的实际增长速度。',
+      volatilityVerdictAdoptionOutpacing: '技术采用快于社区情绪',
+      volatilityVerdictAdoptionOutpacingDesc: 'GitHub 星标增长速率显著快于当前站内社区互动与口碑反馈动量。',
+      volatilityVerdictUnsynced: 'GitHub 尚未同步',
+      volatilityVerdictUnsyncedDesc: '站内 Vibe 波动曲线已实时绘制，同步 GitHub 后可叠加真实星标增速对比。',
+      volatilityVerdictBaseline: '单日基准快照',
+      volatilityVerdictBaselineDesc: '已记录当前基准星标数。跨日同步累积后将绘制每日星标增长率曲线。',
+      volatilityLegendVibeScore: 'Vibe 指数 (0–100)',
+      volatilityLegendBand: '波动区间 (±σ)',
+      volatilityLegendStarRate: '日星标增速 (%)',
+      volatilityLegendSwing: '单日 Vibe 涨跌 (Δ)',
+      volatilityLeftAxisLabel: 'Vibe 指数',
+      volatilityRightAxisLabel: '星标增速 (%)',
+      volatilitySwingAxisLabel: '单日波幅 (Δ)',
+      volatilityScrubHint: '悬停或点击日期节点以查看当日详细数值',
+      volatilityDateLabel: '日期',
+      volatilityVibeDeltaLabel: '单日 Vibe 变化',
+      volatilityStarGainLabel: '单日新增星标',
+      insightsTitle: '项目洞察 · 近 7 天点赞与收藏趋势',
+      insightsSubtitle: '通过 D3 可视化近 7 天社区点赞（即时认同）与收藏（留存意向）的每日增量及累计走势。',
+      insightsModeDaily: '每日增量',
+      insightsModeCumulative: '7天累计走势',
+      insightsKpiLikes7d: '7天新增点赞',
+      insightsKpiBookmarks7d: '7天新增收藏',
+      insightsKpiBookmarkShare: '收藏意向占比',
+      insightsKpiPeakDay: '最高互动日',
+      insightsTotalPrefix: '累计',
+      insightsAvgPerDay: '日均',
+      insightsNoPeakDay: '暂无互动',
+      insightsScrubHint: '悬停或选择任意日期柱条可查看当日详细数据',
+      insightsDateLabel: '日期',
+      insightsCombinedLabel: '合计',
+      insightsMixTitle: '7天互动构成比',
+      insightsEmptyTitle: '该 7 天窗口内暂未记录到点赞或收藏互动。',
+      insightsEmptyHint: '点击下方点赞或收藏按钮即可实时记录每日社区互动变化。',
+      insightsAxisCount: '次数',
     },
     submit: {
       title: '提交新项目',
@@ -1789,6 +2586,41 @@ export const UI_STRINGS: Record<
       promoEmptyFilterTitle: '該当条件の登録プロジェクトがまだありません',
       promoEmptyFilterBody: '最初のプロジェクトを登録して、トップページのショーケースに掲載しましょう。',
       promoCountLiveSuffix: '件登録済み',
+      trending24hTitle: 'トレンド · 24時間 GitHub スター急上昇',
+      trending24hSubtitle: 'GitHub 公式 API の日次スナップショットと 24 時間スター増加速度をもとに、直近 24 時間で最も注目されているリポジトリをリアルタイム表示します。',
+      trending24hAllLanguages: 'すべての言語',
+      trending24hRefreshButton: '更新',
+      trending24hViewLeaderboard: 'スターランキングを見る',
+      trending24hStarsSuffix: '/ 24h',
+      trending24hSourceSnapshot: '24h 実測差分',
+      trending24hSourceRate: '24h 増加速度',
+      trending24hOpenCatalog: '詳細を見る',
+      trending24hOpenGithub: 'GitHub',
+      trending24hEmptyTitle: '選択した言語の 24 時間急上昇リポジトリはありません',
+      trending24hEmptyBody: 'すべての言語に戻すか、最新データを再取得してください。',
+      trending24hResetLanguage: 'すべての言語を表示',
+      trending24hErrorTitle: '24時間の GitHub 成長データを取得できませんでした',
+      trending24hRetryButton: '再試行',
+      recentActivityTitle: '最近のアクティビティ',
+      recentActivitySubtitle: 'VibeAtlas 全体での新規プロジェクト投稿・いいね・ブックマークをリアルタイムでスクロール表示します。',
+      recentActivityFilterAll: 'すべて',
+      recentActivityFilterSubmissions: '新規投稿',
+      recentActivityFilterLikes: 'いいね',
+      recentActivityFilterBookmarks: 'ブックマーク',
+      recentActivityAutoScrollOn: '自動スクロール',
+      recentActivityAutoScrollPaused: '一時停止',
+      recentActivityActionSubmitted: 'が新規投稿しました',
+      recentActivityActionLiked: 'にいいねしました',
+      recentActivityActionBookmarked: 'をブックマークしました',
+      recentActivityCommunityActor: 'VibeAtlas コミュニティ',
+      recentActivityGuestActor: 'ゲスト',
+      recentActivityLiveLabel: 'ライブ',
+      recentActivityDeltaSuffix: '件の反応',
+      recentActivityOpenProject: '詳細',
+      recentActivityEmptyTitle: 'この種別のアクティビティはまだありません',
+      recentActivityEmptyBody: 'プロジェクトを投稿したり、いいね・ブックマークを行うとここに即時反映されます。',
+      recentActivityLiveCountSuffix: '件',
+      recentActivityShowAllButton: 'すべて表示',
     },
     discover: {
       title: 'プロジェクト・リソース探索',
@@ -1879,6 +2711,41 @@ export const UI_STRINGS: Record<
       reposCountLabel: '件の活発なリポジトリ',
       clickHint: 'バブルをクリックまたはホバーして詳細を確認',
     },
+    discoveryMap: {
+      title: 'エコシステム・ビジュアル探索マップ',
+      subtitle: 'GitHub スター数（X軸・対数）と更新・コミュニティ活動頻度（Y軸）に基づく D3 散布図で直感的に探索します。',
+      toggleExpand: 'マップを展開',
+      toggleCollapse: 'マップを折りたたむ',
+      scopeEcosystem: 'エコシステム全体',
+      scopeDirectory: 'ディレクトリ絞り込み結果',
+      scopeVerifiedMakers: '認証メイカーのみ',
+      allTypes: 'すべて',
+      xAxisLabel: 'GitHub スター（対数スケール）',
+      yAxisLabel: '活動頻度スコア (0–100)',
+      quadrantLeaders: 'エコシステム上位',
+      quadrantActiveBuilders: '高活性・注目ビルド',
+      quadrantEstablished: '安定・成熟',
+      quadrantEmerging: '初期・ニッチ',
+      spotlightHeading: 'ノード詳細スポットライト',
+      starsMetricLabel: 'GitHub スター',
+      activityMetricLabel: '活動頻度',
+      dailyVelocityLabel: '日次スター速度',
+      recencyLabel: '最終活動',
+      todayLabel: '今日',
+      daysAgoSuffix: '日前',
+      sourceDirectory: 'VibeAtlas 登録',
+      sourceEnriched: 'ディレクトリ + リアルタイム GitHub',
+      sourceEcosystem: 'GitHub AI エコシステム',
+      inspectButton: '詳細を見る',
+      openGithubButton: 'GitHub で開く',
+      emptyTitle: '条件に一致するノードがありません',
+      emptyBody: 'すべてのタイプに戻すかディレクトリ条件をリセットして全体マップを表示してください。',
+      resetMapFilter: 'マップ絞り込み解除',
+      resetFiltersButton: 'ディレクトリ条件をリセット',
+      pointsCountLabel: '件のノードを表示中',
+      interactionHint: '各ドットにホバーまたはクリックして詳細指標を確認',
+      medianGuideNote: '破線：中央値ライン',
+    },
     card: {
       githubStars: 'GitHub スター',
       internalLikes: 'いいね',
@@ -1894,8 +2761,48 @@ export const UI_STRINGS: Record<
       bookmarkAction: 'ブックマーク',
       trendingBadge: 'トレンド',
       trending7dTooltip: '過去 7 日間で GitHub スター +{count} 増加',
+      trendingEngagementTooltip: '過去 7 日間でいいね +{likes}・ブックマーク +{bookmarks}（計 +{total} 増加）',
       compareAdd: '比較に追加',
       compareSelected: '比較対象',
+    },
+    highlights: {
+      containerLabel: 'プロジェクト注目バッジ',
+      featured: '注目ピック',
+      newArrival: '新着',
+      highActivity: '高アクティビティ',
+      featuredTooltip: '検証済みメタデータと高いコミュニティ評価に基づく注目プロジェクトです。',
+      newArrivalTooltip: '最近カタログに追加された新着プロジェクトです（{date}）。',
+      highActivityTooltip: '直近の更新頻度やコミュニティ反応が特に活発なプロジェクトです。',
+      highActivityStarsTooltip: '過去 7 日間で GitHub スター +{count} 増加の高成長プロジェクトです。',
+      highActivitySignalsTooltip: '過去 7 日間でいいね・ブックマーク +{count} 件の活発な反応があります。',
+    },
+    verification: {
+      claimedBadge: 'メイカー認証',
+      claimedTooltip: '制作者本人によって所有権が認証・管理されているプロジェクトです。',
+      pendingBadge: '認証審査中',
+      pendingTooltip: 'メイカー所有権の認証リクエストを受領し確認中です。',
+      unclaimedBadge: '未認証',
+      panelTitleClaimed: 'メイカー所有権 認証済み',
+      panelBodyClaimed:
+        '公式メイカーが VibeAtlas 上で所有権を認証済みです。外部リンクやライセンス表記、制作者情報の信頼性が確認されています。',
+      panelTitlePending: 'メイカー所有権 認証審査中',
+      panelBodyPending:
+        '所有権の認証申請が提出され確認中です。承認されるとカードおよび詳細モーダルにメイカー認証バッジが表示されます。',
+      panelTitleUnclaimed: 'メイカー未認証リスティング',
+      panelBodyUnclaimed:
+        '公開リポジトリまたはコミュニティ登録によるエントリです。制作者ご本人の場合は所有権を申請して信頼バッジを取得できます。',
+      attributionLabel: 'メイカー',
+      methodLabel: '認証方法',
+      statusLabel: 'ステータス',
+      statusClaimed: '所有権認証済み',
+      statusPending: '審査中',
+      statusUnclaimed: '未認証',
+      ownerTag: 'あなたの登録',
+      methodGithub: 'GitHub リポジトリ権限',
+      methodDns: 'ドメイン DNS TXT',
+      methodDemo: 'ライブデモ Meta タグ',
+      methodDirect: 'メイカー直接投稿・検証済み',
+      claimCta: '所有権を認証する',
     },
     compare: {
       trayTitle: 'プロジェクト比較',
@@ -2008,6 +2915,96 @@ export const UI_STRINGS: Record<
       copyDirectLink: 'リンクをコピー',
       copyPromoPitch: '紹介文をコピー',
       copiedFeedback: 'コピーしました',
+      timelineTitle: 'プロジェクトタイムライン & マイルストーン',
+      timelineSubtitle: 'GitHub リリース・直近コミット履歴と作成者が記録したマイルストーンログを時系列で可視化します。',
+      timelineFilterAll: 'すべて',
+      timelineFilterReleases: 'リリース',
+      timelineFilterCommits: 'コミット',
+      timelineFilterCreatorLogs: '作成者ログ',
+      timelineSortNewest: '新しい順',
+      timelineSortOldest: '古い順',
+      timelineAddButton: 'マイルストーンを追加',
+      timelineCloseComposer: 'フォームを閉じる',
+      timelineCadenceLabel: '活動タイムスパン',
+      timelineSpanDaysSuffix: '日間',
+      timelineGapSuffix: '日の間隔',
+      timelineLoadingLabel: 'GitHub リポジトリのリリースとコミットを取得中...',
+      timelineRepoErrorNotice: 'GitHub のアクティビティを一時的に取得できないため、ディレクトリおよび作成者ログのみ表示しています。',
+      timelineNoRepoNote: 'GitHub リポジトリ未連携のため、ディレクトリ履歴と作成者ログを表示しています。',
+      timelineEmptyTitle: '該当するマイルストーンがありません',
+      timelineEmptyBody: '「すべて」に切り替えると、リポジトリやディレクトリの履歴を確認できます。',
+      timelineEmptyCreatorBody: '作成者によるカスタム更新ログはまだ登録されていません。',
+      timelineAuthNoticeSignedOut: '公式マイルストーンログを公開するには、プロジェクト所有者の Google アカウントでログインしてください。',
+      timelineAuthNoticeNotOwner: '登録済みのプロジェクト所有者または管理者のみ作成者ログを追加できます。制作者の場合は上から所有権認証を申請してください。',
+      timelineSignInCta: 'Google でログイン',
+      timelineClaimCta: '所有権認証を開く',
+      timelineKindLabel: '種別',
+      timelineKindRelease: 'リリース',
+      timelineKindLaunch: 'ローンチ',
+      timelineKindFeature: '新機能',
+      timelineKindUpdate: 'アップデート',
+      timelineKindFix: '修正',
+      timelineVersionLabel: 'バージョンタグ（任意）',
+      timelineDateLabel: '日付',
+      timelineEntryTitleLabel: 'タイトル *',
+      timelineSummaryLabel: '概要（任意）',
+      timelineUrlLabel: '参考 URL（任意）',
+      timelinePublishButton: 'タイムラインに公開',
+      timelinePublishingButton: '公開中...',
+      timelineDeleteButton: 'マイルストーンを削除',
+      timelineExternalLink: 'ソースを開く',
+      timelineSourceRelease: 'GitHub リリース',
+      timelineSourceCommit: 'コミット',
+      timelineSourceCreator: '作成者ログ',
+      timelineSourceCatalog: 'ディレクトリ履歴',
+      volatilityTitle: 'Vibe スコア変動率 vs. GitHub スター成長率',
+      volatilitySubtitle: 'D3 デュアルトレンド線で Vibe スコアの揺らぎ幅（±σ バンド）と日次スター増加率を比較します。',
+      volatilityModePace: '複合トレンド',
+      volatilityModeSwing: '日次変動幅',
+      volatilityMetricStdDev: '変動率 (σ)',
+      volatilityMetricNetVibe: '14日間 Vibe 変化',
+      volatilityMetricStarRate: '14日間スター成長率',
+      volatilityMetricMaxSwing: '最大日次振れ幅',
+      volatilityVerdictLabel: '技術採用ペースとコミュニティ感情の整合性',
+      volatilityVerdictKeepingPace: '技術採用と歩調が一致',
+      volatilityVerdictKeepingPaceDesc: 'コミュニティの Vibe スコアと GitHub スター増加率がバランスよく連動しています。',
+      volatilityVerdictSentimentLeading: 'コミュニティ期待が先行',
+      volatilityVerdictSentimentLeadingDesc: '内部の注目度やスコア変動が現在のリポジトリスター成長速度を上回っています。',
+      volatilityVerdictAdoptionOutpacing: '技術採用がコミュニティを上回る',
+      volatilityVerdictAdoptionOutpacingDesc: 'GitHub スターの伸びが VibeAtlas 内部のコミュニティ勢いよりも速く進んでいます。',
+      volatilityVerdictUnsynced: 'GitHub 未同期',
+      volatilityVerdictUnsyncedDesc: '内部 Vibe 変動のみ追跡中です。GitHub を同期すると実測スター成長率を重ねて比較できます。',
+      volatilityVerdictBaseline: '初回スナップショット基準',
+      volatilityVerdictBaselineDesc: '本日のスター数が記録されました。複数日の同期データが蓄積すると日次成長率が描画されます。',
+      volatilityLegendVibeScore: 'Vibe スコア (0–100)',
+      volatilityLegendBand: '変動バンド (±σ)',
+      volatilityLegendStarRate: '日次スター成長率 (%)',
+      volatilityLegendSwing: '日次 Vibe 増減 (Δ)',
+      volatilityLeftAxisLabel: 'Vibe スコア',
+      volatilityRightAxisLabel: 'スター成長率 (%)',
+      volatilitySwingAxisLabel: '日次変動 (Δpt)',
+      volatilityScrubHint: '日付ポイントにホバーまたは選択すると詳細数値を表示します',
+      volatilityDateLabel: '日付',
+      volatilityVibeDeltaLabel: '前日比 Vibe',
+      volatilityStarGainLabel: '日次スター増減',
+      insightsTitle: 'プロジェクトインサイト · 直近 7 日間のいいね & ブックマーク',
+      insightsSubtitle: '直近 7 日間のいいね（即時反応）とブックマーク（保存意図）の日次増減および累計推移を D3 で可視化します。',
+      insightsModeDaily: '日次増減',
+      insightsModeCumulative: '7日間累計推移',
+      insightsKpiLikes7d: '7日間のいいね増',
+      insightsKpiBookmarks7d: '7日間の保存増',
+      insightsKpiBookmarkShare: 'ブックマーク比率',
+      insightsKpiPeakDay: '最大アクティブ日',
+      insightsTotalPrefix: '累計',
+      insightsAvgPerDay: '日平均',
+      insightsNoPeakDay: '記録なし',
+      insightsScrubHint: '日付ごとのバーやノードを選択して詳細数値を確認できます',
+      insightsDateLabel: '日付',
+      insightsCombinedLabel: '合計',
+      insightsMixTitle: '7日間の反応内訳',
+      insightsEmptyTitle: '直近 7 日間に記録されたいいね・ブックマークはまだありません。',
+      insightsEmptyHint: '下のいいねまたはブックマークを押すと、日次のコミュニティ推移が即座に反映されます。',
+      insightsAxisCount: '件数',
     },
     submit: {
       title: '新しいプロジェクトを登録',
