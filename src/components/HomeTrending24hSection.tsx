@@ -5,7 +5,6 @@ import {
   ExternalLink,
   RefreshCw,
   Star,
-  TrendingUp,
 } from 'lucide-react';
 import type {
   ActivePage,
@@ -19,8 +18,10 @@ import {
   chunkTranslationItems,
   needsDescriptionTranslation,
 } from '../lib/repoDescriptionTranslator';
+import { playUiSound } from '../lib/soundEffects';
 import { selectTrending24hProjects } from '../lib/trending24h';
 import { sanitizeExternalUrl } from '../lib/validation';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 
 interface HomeTrending24hSectionProps {
   language: AppLanguage;
@@ -155,30 +156,29 @@ export function HomeTrending24hSection({
       data-testid="home-trending-24h"
       className="mx-auto max-w-7xl px-4 sm:px-6"
     >
-      <div className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs sm:p-6 dark:border-slate-800 dark:bg-slate-900">
         {/* Header Bar */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-              <TrendingUp
-                className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
-                aria-hidden="true"
-              />
-              <h2
-                id="home-trending-24h-heading"
-                className="text-lg font-bold text-slate-900 sm:text-xl dark:text-white"
-              >
-                {homeCopy.trending24hTitle}
-              </h2>
-              {summary.entries.length > 0 && (
-                <span className="font-mono text-xs text-slate-500 tabular-nums dark:text-slate-400">
-                  · Top {summary.entries.length}
-                </span>
-              )}
+          <div className="flex min-w-0 max-w-2xl items-start gap-3">
+            <PastelCategoryIcon role="trending" size="md" className="mt-0.5" />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                <h2
+                  id="home-trending-24h-heading"
+                  className="text-lg font-bold text-slate-900 sm:text-xl dark:text-white"
+                >
+                  {homeCopy.trending24hTitle}
+                </h2>
+                {summary.entries.length > 0 && (
+                  <span className="font-mono text-xs text-slate-500 tabular-nums dark:text-slate-400">
+                    · Top {summary.entries.length}
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs leading-relaxed text-slate-500 sm:text-sm dark:text-slate-400">
+                {homeCopy.trending24hSubtitle}
+              </p>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-600 sm:text-sm dark:text-slate-300">
-              {homeCopy.trending24hSubtitle}
-            </p>
           </div>
 
           <div className="flex min-w-0 w-full flex-wrap items-center gap-2.5 lg:w-auto lg:justify-end">
@@ -186,15 +186,18 @@ export function HomeTrending24hSection({
               <div
                 role="tablist"
                 aria-label={homeCopy.trending24hTitle}
-                className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950"
+                className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950"
               >
                 <button
                   type="button"
                   role="tab"
                   aria-selected={selectedLanguage === 'all'}
                   data-testid="trending24h-lang-all"
-                  onClick={() => setSelectedLanguage('all')}
-                  className={`shrink-0 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  onClick={() => {
+                    playUiSound('tap');
+                    setSelectedLanguage('all');
+                  }}
+                  className={`shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                     selectedLanguage === 'all'
                       ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                       : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
@@ -211,8 +214,11 @@ export function HomeTrending24hSection({
                       role="tab"
                       aria-selected={active}
                       data-testid={`trending24h-lang-${lang.toLowerCase()}`}
-                      onClick={() => setSelectedLanguage(lang)}
-                      className={`shrink-0 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      onClick={() => {
+                        playUiSound('tap');
+                        setSelectedLanguage(lang);
+                      }}
+                      className={`shrink-0 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                         active
                           ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                           : 'text-slate-600 hover:bg-slate-200/70 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white'
@@ -227,10 +233,13 @@ export function HomeTrending24hSection({
 
             <button
               type="button"
-              onClick={() => void loadLiveTrending(true)}
+              onClick={() => {
+                playUiSound('tap');
+                void loadLiveTrending(true);
+              }}
               disabled={isLoading}
               data-testid="trending24h-refresh-btn"
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`}
@@ -241,9 +250,12 @@ export function HomeTrending24hSection({
 
             <button
               type="button"
-              onClick={() => onNavigate('stars')}
+              onClick={() => {
+                playUiSound('tap');
+                onNavigate('stars');
+              }}
               data-testid="trending24h-leaderboard-btn"
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-blue-700 hover:underline dark:text-blue-400"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-blue-700 hover:underline dark:text-sky-300"
             >
               <span>{homeCopy.trending24hViewLeaderboard}</span>
               <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -342,7 +354,7 @@ export function HomeTrending24hSection({
                 <article
                   key={entry.id}
                   data-testid={`trending24h-item-${entry.rank}`}
-                  className="flex flex-col justify-between rounded-lg bg-slate-50/85 p-4 transition-colors hover:bg-slate-100/90 dark:bg-slate-950/70 dark:hover:bg-slate-950"
+                  className="flex flex-col justify-between rounded-2xl border border-slate-100 bg-slate-50/75 p-4 transition-colors hover:border-emerald-200 hover:bg-emerald-50/25 dark:border-slate-800/80 dark:bg-slate-950/70 dark:hover:border-emerald-900/70"
                 >
                   <div>
                     {/* Zero-Pill Metadata Line */}

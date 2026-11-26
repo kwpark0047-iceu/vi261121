@@ -1,13 +1,31 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { doc, getDocFromServer, getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+import rawFirebaseConfig from '../../firebase-applet-config.json';
+import { resolveFirebaseConfig } from './authErrors';
+
+const envMeta = (import.meta as unknown as { env?: Record<string, string | undefined> }).env ?? {};
+
+const firebaseConfig = resolveFirebaseConfig(rawFirebaseConfig, {
+  VITE_FIREBASE_API_KEY: envMeta.VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_AUTH_DOMAIN: envMeta.VITE_FIREBASE_AUTH_DOMAIN,
+  VITE_FIREBASE_PROJECT_ID: envMeta.VITE_FIREBASE_PROJECT_ID,
+  VITE_FIREBASE_APP_ID: envMeta.VITE_FIREBASE_APP_ID,
+  VITE_FIREBASE_STORAGE_BUCKET: envMeta.VITE_FIREBASE_STORAGE_BUCKET,
+  VITE_FIREBASE_MESSAGING_SENDER_ID: envMeta.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  VITE_FIREBASE_DATABASE_ID: envMeta.VITE_FIREBASE_DATABASE_ID,
+});
 
 const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const activeFirebaseProjectId = firebaseConfig.projectId;
+export const db =
+  firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)'
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
 export const auth = getAuth(app);
 export const googleAuthProvider = new GoogleAuthProvider();
+googleAuthProvider.setCustomParameters({ prompt: 'select_account' });
 
 export const OperationType = {
   CREATE: 'create',

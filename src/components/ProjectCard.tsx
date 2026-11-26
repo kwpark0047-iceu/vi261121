@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
+import { motion } from 'motion/react';
 import {
-  AlertTriangle,
   Bookmark,
   Check,
-  CheckCircle2,
   ExternalLink,
   GitCompareArrows,
   GitFork,
   Heart,
-  HelpCircle,
   Star,
 } from 'lucide-react';
 import type {
@@ -37,11 +35,17 @@ import {
   resolveProjectHighlightBadges,
   type CatalogHighlightContext,
 } from '../lib/projectHighlightBadges';
+import { resolveProjectStatusBadges } from '../lib/projectStatusBadges';
+import { playUiSound } from '../lib/soundEffects';
 import type { EngagementTrendingInfo } from '../lib/trendingEngagement';
+import { buildSevenDayStarSparkline } from '../lib/starSparkline';
 import type { TrendingProjectInfo } from '../lib/trendingStars';
 import { MakerVerificationBadge } from './MakerVerificationBadge';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 import { ProjectHighlightBadges } from './ProjectHighlightBadges';
-import { TrendingBadge } from './TrendingBadge';
+import { ProjectStatusBadges } from './ProjectStatusBadges';
+import { ResilientProjectImage } from './ResilientProjectImage';
+import { StarHistorySparkline } from './StarHistorySparkline';
 
 interface ProjectCardProps {
   project: CatalogProject;
@@ -56,6 +60,8 @@ interface ProjectCardProps {
   highlightContext?: CatalogHighlightContext;
   makerClaims?: ReadonlyArray<OwnershipClaimRecord>;
   selectedTags?: ReadonlyArray<string>;
+  showStarSparkline?: boolean;
+  starSnapshots?: Record<string, number>;
   onSelectTag?: (tag: string) => void;
   onOpenDetail: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
@@ -76,13 +82,14 @@ export function ProjectCard({
   highlightContext,
   makerClaims,
   selectedTags,
+  showStarSparkline = false,
+  starSnapshots,
   onSelectTag,
   onOpenDetail,
   onToggleLike,
   onToggleBookmark,
   onToggleCompare,
 }: ProjectCardProps) {
-  const [imgFailed, setImgFailed] = useState(false);
   const copy = UI_STRINGS[language].card;
   const typeLabel = CONTENT_TYPE_LABELS[language][project.contentType];
   const platformLabel = PLATFORM_LABELS[project.developmentPlatform];
@@ -90,67 +97,82 @@ export function ProjectCard({
   const pricingLabel = PRICING_LABELS[language][project.pricingModel];
   const freshness = computeFreshnessState(project.lastSyncedAt);
   const missing = detectMissingFields(project);
-  const projectTags = getProjectTags(project, 4);
+  const projectTags = getProjectTags(project, 3);
   const makerVerification = resolveMakerVerification(project, makerClaims);
   const highlightBadges = resolveProjectHighlightBadges(project, {
     context: highlightContext,
     starsGained7d: trendingInfo?.starsGained7d,
   });
+  const statusBadges = useMemo(
+    () =>
+      resolveProjectStatusBadges(project, {
+        engagementTrending,
+        starTrending: trendingInfo,
+      }),
+    [project, engagementTrending, trendingInfo]
+  );
+  const sparkline = useMemo(
+    () => (showStarSparkline ? buildSevenDayStarSparkline(project, starSnapshots) : null),
+    [showStarSparkline, project, starSnapshots]
+  );
+  const hasVisibleStars =
+    Boolean(project.lastSyncedAt) || (sparkline !== null && sparkline.latestStars > 0);
+  const displayStars = project.lastSyncedAt
+    ? project.githubStars
+    : sparkline?.latestStars ?? 0;
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
   const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
   const safeGithub = sanitizeExternalUrl(project.githubUrl);
 
-  const verificationNode =
-    project.verificationStatus === 'verified' ? (
-      <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-        <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-        <span>{copy.verifiedLabel}</span>
-      </span>
-    ) : project.verificationStatus === 'pending' ? (
-      <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-400">
-        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-        <span>{copy.pendingLabel}</span>
-      </span>
-    ) : (
-      <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
-        <HelpCircle className="h-3.5 w-3.5 shrink-0" />
-        <span>{copy.unverifiedLabel}</span>
-      </span>
-    );
-
   return (
-    <article
-      className={`group flex flex-col justify-between rounded-xl border border-slate-200 bg-white transition-colors hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 ${
-        viewMode === 'list' ? 'sm:flex-row sm:items-center sm:gap-6 p-4 sm:p-5' : 'p-5'
+    <motion.article
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.16, ease: 'easeOut' }}
+      className={`group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white shadow-2xs transition-all hover:border-sky-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:hover:border-sky-800/80 ${
+        viewMode === 'list' ? 'sm:flex-row sm:items-center sm:gap-5 p-4 sm:p-5' : 'p-5'
       }`}
     >
-      <div className={viewMode === 'list' ? 'flex-1 min-w-0' : ''}>
-        {viewMode === 'grid' && project.thumbnailUrl && !imgFailed && (
-          <div className="mb-4 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
-            <img
+      <div className={viewMode === 'list' ? 'flex flex-1 min-w-0 items-center gap-4' : ''}>
+        {viewMode === 'grid' && (
+          <div className="mb-4">
+            <ResilientProjectImage
               src={project.thumbnailUrl}
               alt={project.name}
-              referrerPolicy="no-referrer"
-              onError={() => setImgFailed(true)}
-              className="aspect-[16/9] w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+              contentType={project.contentType}
+              subtitle={typeLabel}
+              aspectClassName="aspect-[16/9]"
+              imgClassName="group-hover:scale-[1.03]"
             />
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-x-1.5 whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">
+        {viewMode === 'list' && (
+          <div className="hidden w-28 shrink-0 sm:block">
+            <ResilientProjectImage
+              src={project.thumbnailUrl}
+              alt={project.name}
+              contentType={project.contentType}
+              aspectClassName="aspect-[4/3]"
+              imgClassName="group-hover:scale-[1.03]"
+            />
+          </div>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-x-1.5 whitespace-nowrap text-[11px] text-slate-500 dark:text-slate-400">
             {typeof project.leaderboardRank === 'number' && project.leaderboardRank > 0 && (
               <span
                 data-testid="project-rank-badge"
-                className={`inline-flex shrink-0 items-center rounded border px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
+                className={`inline-flex shrink-0 items-center rounded-lg border px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${
                   project.leaderboardRank <= 3
-                    ? 'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                    ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
                     : 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                 }`}
               >
                 #{project.leaderboardRank}
               </span>
             )}
+            <PastelCategoryIcon contentType={project.contentType} size="xs" animated={false} />
             <span className="min-w-0 truncate font-medium text-slate-700 dark:text-slate-300">
               {typeLabel}
             </span>
@@ -158,10 +180,6 @@ export function ProjectCard({
               ·
             </span>
             <span className="shrink-0">{project.country}</span>
-            <span aria-hidden="true" className="shrink-0">
-              ·
-            </span>
-            <span className="inline-flex shrink-0 items-center">{verificationNode}</span>
             {freshness === 'stale' && (
               <>
                 <span aria-hidden="true" className="shrink-0">
@@ -174,108 +192,111 @@ export function ProjectCard({
             )}
           </div>
 
-          <TrendingBadge
-            language={language}
-            engagementTrending={engagementTrending}
-            starTrending={trendingInfo}
-            variant="card"
-          />
-        </div>
+          <h3 className="mt-2.5 text-base font-semibold leading-snug text-slate-900 dark:text-white">
+            <button
+              type="button"
+              onClick={() => onOpenDetail(project)}
+              className="text-left transition-colors hover:text-blue-700 hover:underline dark:hover:text-sky-300"
+            >
+              {project.name}
+            </button>
+          </h3>
 
-        <h3 className="mt-2 text-base font-semibold leading-snug text-slate-900 dark:text-white">
-          <button
-            type="button"
-            onClick={() => onOpenDetail(project)}
-            className="text-left hover:text-blue-700 hover:underline dark:hover:text-blue-400"
-          >
-            {project.name}
-          </button>
-        </h3>
-
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <p className="min-w-0 truncate text-xs text-slate-500 dark:text-slate-400">
-            {project.makerName}
-            {project.makerHandle ? ` (${project.makerHandle})` : ''}
-          </p>
-          <MakerVerificationBadge
-            verification={makerVerification}
-            language={language}
-            variant="card"
-          />
-        </div>
-
-        <ProjectHighlightBadges
-          badges={highlightBadges}
-          language={language}
-          variant="card"
-          className="mt-2"
-        />
-
-        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-          {tagline}
-        </p>
-
-        <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-          <span>{platformLabel}</span>
-          {project.backendTech !== 'none' && project.backendTech !== 'unknown' && (
-            <>
-              <span aria-hidden="true">/</span>
-              <span>{backendLabel}</span>
-            </>
-          )}
-          <span aria-hidden="true">·</span>
-          <span>{pricingLabel}</span>
-          <span aria-hidden="true">·</span>
-          <span
-            className={
-              missing.includes('license')
-                ? 'text-amber-700 dark:text-amber-400'
-                : 'font-mono text-slate-600 dark:text-slate-300'
-            }
-          >
-            {missing.includes('license') ? copy.missingLicense : project.license}
-          </span>
-        </div>
-
-        {projectTags.length > 0 && (
-          <div
-            data-testid={`card-tags-${project.slug}`}
-            className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]"
-          >
-            {projectTags.map((tag, idx) => {
-              const canonical = resolveCanonicalCategoryTag(tag);
-              const displayLabel = canonical ? PROJECT_CATEGORY_LABELS[language][canonical] : tag;
-              const isSelected = Boolean(
-                selectedTags?.some((s) => s.trim().toLowerCase() === tag.trim().toLowerCase())
-              );
-              return (
-                <span key={tag} className="inline-flex items-center gap-2">
-                  {idx > 0 && (
-                    <span aria-hidden="true" className="text-slate-300 dark:text-slate-700">
-                      ·
-                    </span>
-                  )}
-                  {onSelectTag ? (
-                    <button
-                      type="button"
-                      onClick={() => onSelectTag(tag)}
-                      aria-pressed={isSelected}
-                      className={`transition-colors hover:underline ${
-                        isSelected
-                          ? 'font-semibold text-blue-700 dark:text-blue-400'
-                          : 'text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-400'
-                      }`}
-                    >
-                      #{displayLabel}
-                    </button>
-                  ) : (
-                    <span className="text-slate-500 dark:text-slate-400">#{displayLabel}</span>
-                  )}
-                </span>
-              );
-            })}
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <p className="min-w-0 truncate text-xs text-slate-500 dark:text-slate-400">
+              {project.makerName}
+              {project.makerHandle ? ` (${project.makerHandle})` : ''}
+            </p>
+            <MakerVerificationBadge
+              verification={makerVerification}
+              language={language}
+              variant="card"
+            />
           </div>
-        )}
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <ProjectStatusBadges
+              badges={statusBadges}
+              language={language}
+              engagementTrending={engagementTrending}
+              starTrending={trendingInfo}
+            />
+            <ProjectHighlightBadges
+              badges={highlightBadges}
+              language={language}
+              variant="card"
+            />
+          </div>
+
+          <p className="mt-2 line-clamp-2 text-sm leading-snug text-slate-600 dark:text-slate-300">
+            {tagline}
+          </p>
+
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+            <span>{platformLabel}</span>
+            {project.backendTech !== 'none' && project.backendTech !== 'unknown' && (
+              <>
+                <span aria-hidden="true">/</span>
+                <span>{backendLabel}</span>
+              </>
+            )}
+            <span aria-hidden="true">·</span>
+            <span>{pricingLabel}</span>
+            <span aria-hidden="true">·</span>
+            <span
+              className={
+                missing.includes('license')
+                  ? 'text-amber-700 dark:text-amber-400'
+                  : 'font-mono text-slate-600 dark:text-slate-300'
+              }
+            >
+              {missing.includes('license') ? copy.missingLicense : project.license}
+            </span>
+          </div>
+
+          {projectTags.length > 0 && (
+            <div
+              data-testid={`card-tags-${project.slug}`}
+              className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px]"
+            >
+              {projectTags.map((tag, idx) => {
+                const canonical = resolveCanonicalCategoryTag(tag);
+                const displayLabel = canonical ? PROJECT_CATEGORY_LABELS[language][canonical] : tag;
+                const isSelected = Boolean(
+                  selectedTags?.some((s) => s.trim().toLowerCase() === tag.trim().toLowerCase())
+                );
+                return (
+                  <span key={tag} className="inline-flex items-center gap-2">
+                    {idx > 0 && (
+                      <span aria-hidden="true" className="text-slate-300 dark:text-slate-700">
+                        ·
+                      </span>
+                    )}
+                    {onSelectTag ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          playUiSound('tap');
+                          onSelectTag(tag);
+                        }}
+                        aria-pressed={isSelected}
+                        className={`transition-colors hover:underline ${
+                          isSelected
+                            ? 'font-semibold text-blue-700 dark:text-sky-400'
+                            : 'text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-sky-400'
+                        }`}
+                      >
+                        #{displayLabel}
+                      </button>
+                    ) : (
+                      <span className="text-slate-500 dark:text-slate-400">#{displayLabel}</span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <div
@@ -285,16 +306,24 @@ export function ProjectCard({
             : 'mt-4 border-t pt-3.5'
         }`}
       >
+        {sparkline && project.githubRepo && (
+          <StarHistorySparkline
+            project={project}
+            language={language}
+            sparkline={sparkline}
+          />
+        )}
+
         <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
           {project.githubRepo ? (
             <span
               title={copy.githubStars}
               className={`inline-flex items-center gap-1 ${
-                project.lastSyncedAt ? 'tabular-nums font-mono' : 'font-sans'
+                hasVisibleStars ? 'tabular-nums font-mono' : 'font-sans'
               }`}
             >
               <Star className="h-3.5 w-3.5 text-amber-500" />
-              {project.lastSyncedAt ? formatCompactCount(project.githubStars) : copy.notSynced}
+              {hasVisibleStars ? formatCompactCount(displayStars) : copy.notSynced}
             </span>
           ) : null}
           {project.githubForks > 0 && (
@@ -307,7 +336,7 @@ export function ProjectCard({
             title={copy.internalLikes}
             className="inline-flex items-center gap-1 tabular-nums font-mono"
           >
-            <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-rose-600 text-rose-600' : ''}`} />
+            <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
             {project.likesCount}
           </span>
           <span
@@ -315,58 +344,64 @@ export function ProjectCard({
             className="inline-flex items-center gap-1 tabular-nums font-mono"
           >
             <Bookmark
-              className={`h-3.5 w-3.5 ${isBookmarked ? 'fill-blue-700 text-blue-700 dark:fill-blue-400 dark:text-blue-400' : ''}`}
+              className={`h-3.5 w-3.5 ${
+                isBookmarked ? 'fill-sky-600 text-sky-600 dark:fill-sky-400 dark:text-sky-400' : ''
+              }`}
             />
             {project.bookmarksCount}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.88 }}
             aria-label={`${copy.likeAction}: ${project.name}`}
             onClick={() => onToggleLike(project)}
-            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs font-medium transition-colors ${
+            className={`inline-flex h-8 items-center gap-1 rounded-xl border px-2.5 text-xs font-medium transition-colors ${
               isLiked
-                ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900 dark:bg-rose-950/50 dark:text-rose-300'
+                : 'border-slate-200 text-slate-600 hover:bg-rose-50/50 hover:text-rose-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
             <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.88 }}
             aria-label={`${copy.bookmarkAction}: ${project.name}`}
             onClick={() => onToggleBookmark(project)}
-            className={`inline-flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs font-medium transition-colors ${
+            className={`inline-flex h-8 items-center gap-1 rounded-xl border px-2.5 text-xs font-medium transition-colors ${
               isBookmarked
-                ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/50 dark:text-blue-300'
-                : 'border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                ? 'border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900 dark:bg-sky-950/50 dark:text-sky-300'
+                : 'border-slate-200 text-slate-600 hover:bg-sky-50/50 hover:text-sky-700 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
             }`}
           >
             <Bookmark className={`h-3.5 w-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
-          </button>
+          </motion.button>
 
           {(safeDemo || safeGithub) && (
             <a
               href={safeDemo || safeGithub || '#'}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => playUiSound('tap')}
               aria-label={`External link: ${project.name}`}
-              className="inline-flex h-8 items-center justify-center rounded-lg border border-slate-200 px-2.5 text-xs text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 px-2.5 text-xs text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
 
-          <button
+          <motion.button
             type="button"
+            whileTap={{ scale: 0.96 }}
             onClick={() => onOpenDetail(project)}
-            className="inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-lg bg-slate-900 px-3 text-xs font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+            className="inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-xl bg-slate-900 px-3 text-xs font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
           >
             {copy.openDetail}
-          </button>
+          </motion.button>
         </div>
 
         {onToggleCompare && (
@@ -374,13 +409,16 @@ export function ProjectCard({
             type="button"
             data-testid={`compare-toggle-${project.slug}`}
             aria-pressed={isCompared}
-            onClick={() => onToggleCompare(project)}
-            className={`mt-1 flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+            onClick={() => {
+              playUiSound('tap');
+              onToggleCompare(project);
+            }}
+            className={`mt-1 flex w-full items-center justify-between gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors ${
               isCompared
-                ? 'border-blue-600 bg-blue-50 text-blue-800 dark:border-blue-500 dark:bg-blue-950/60 dark:text-blue-200'
+                ? 'border-blue-500 bg-sky-50 text-blue-800 dark:border-sky-500 dark:bg-sky-950/60 dark:text-sky-200'
                 : compareDisabled
                   ? 'border-slate-200 bg-slate-50 text-slate-400 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-500'
-                  : 'border-slate-200 bg-slate-50/70 text-slate-700 hover:border-blue-300 hover:bg-blue-50/40 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/30'
+                  : 'border-slate-200 bg-slate-50/70 text-slate-700 hover:border-sky-300 hover:bg-sky-50/40 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-300 dark:hover:border-sky-800 dark:hover:bg-sky-950/30'
             }`}
           >
             <span className="inline-flex items-center gap-2 whitespace-nowrap">
@@ -388,7 +426,7 @@ export function ProjectCard({
                 aria-hidden="true"
                 className={`inline-flex h-3.5 w-3.5 items-center justify-center rounded border ${
                   isCompared
-                    ? 'border-blue-700 bg-blue-700 text-white dark:border-blue-500 dark:bg-blue-500'
+                    ? 'border-blue-600 bg-blue-600 text-white dark:border-sky-500 dark:bg-sky-500'
                     : 'border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900'
                 }`}
               >
@@ -400,6 +438,6 @@ export function ProjectCard({
           </button>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }

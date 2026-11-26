@@ -46,6 +46,7 @@ import {
   type SubmitProjectDraftFields,
 } from '../lib/submitDraftStorage';
 import { buildProjectShareUrl, buildPromotionCopy } from '../lib/submissionPromotion';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 
 interface SubmitProjectPageProps {
   language: AppLanguage;
@@ -370,14 +371,17 @@ export function SubmitProjectPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <div className="border-b border-slate-200 pb-5 dark:border-slate-800">
-        <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
-          {copy.title}
-        </h1>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
-        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-          {copy.draftAutosaveHint}
-        </p>
+      <div className="flex items-start gap-3.5 border-b border-slate-200 pb-5 dark:border-slate-800">
+        <PastelCategoryIcon role="submit" size="lg" />
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
+            {copy.title}
+          </h1>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {copy.draftAutosaveHint}
+          </p>
+        </div>
       </div>
 
       {draftRestored && (

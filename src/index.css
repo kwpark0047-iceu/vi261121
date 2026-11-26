@@ -11,6 +11,7 @@
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, .font-display {
@@ -25,6 +26,19 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+}
+
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 5.5s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

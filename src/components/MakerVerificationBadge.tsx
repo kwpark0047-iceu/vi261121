@@ -1,4 +1,4 @@
-import { BadgeCheck, Clock, Shield, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Clock, Pencil, Shield, ShieldCheck } from 'lucide-react';
 import { UI_STRINGS } from '../data/i18n';
 import type {
   MakerVerificationInfo,
@@ -143,16 +143,21 @@ interface MakerTrustPanelProps {
   verification: MakerVerificationInfo;
   language: AppLanguage;
   claimFormOpen?: boolean;
+  canEdit?: boolean;
   onRequestClaim?: () => void;
+  onEditProject?: () => void;
 }
 
 export function MakerTrustPanel({
   verification,
   language,
   claimFormOpen = false,
+  canEdit = false,
   onRequestClaim,
+  onEditProject,
 }: MakerTrustPanelProps) {
   const copy = UI_STRINGS[language].verification;
+  const editLabel = UI_STRINGS[language].detail.editProject;
   const isClaimed = verification.status === 'claimed_verified';
   const isPending = verification.status === 'claim_pending';
 
@@ -227,18 +232,32 @@ export function MakerTrustPanel({
           </div>
         </div>
 
-        {verification.status === 'unclaimed' && onRequestClaim && (
-          <button
-            type="button"
-            data-testid="trust-panel-claim-btn"
-            aria-expanded={claimFormOpen}
-            onClick={onRequestClaim}
-            className="inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-800"
-          >
-            <ShieldCheck className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" aria-hidden="true" />
-            <span>{copy.claimCta}</span>
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {canEdit && onEditProject && (
+            <button
+              type="button"
+              data-testid="trust-panel-edit-btn"
+              onClick={onEditProject}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-blue-300 bg-blue-50 px-3.5 py-2 text-xs font-semibold text-blue-800 transition-colors hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/50"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{editLabel}</span>
+            </button>
+          )}
+
+          {verification.status === 'unclaimed' && onRequestClaim && (
+            <button
+              type="button"
+              data-testid="trust-panel-claim-btn"
+              aria-expanded={claimFormOpen}
+              onClick={onRequestClaim}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" aria-hidden="true" />
+              <span>{copy.claimCta}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <dl className="mt-3.5 grid grid-cols-1 gap-2 border-t border-slate-200/80 pt-3 text-xs sm:grid-cols-3 dark:border-slate-800/80">

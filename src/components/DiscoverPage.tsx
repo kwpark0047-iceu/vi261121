@@ -58,12 +58,36 @@ import {
 import { computeCatalogHighlightContext } from '../lib/projectHighlightBadges';
 import {
   computeEngagementTrendingScoresMap,
+  rankTrendingByEngagement7d,
   selectTrendingByEngagement7d,
 } from '../lib/trendingEngagement';
-import { computeStarGainsMap, selectTrendingProjects7d } from '../lib/trendingStars';
+import {
+  buildFilterPatchForDiscoverTab,
+  computeDiscoverTabCounts,
+  resolveActiveDiscoverTab,
+  type DiscoverCategoryTabId,
+} from '../lib/discoverCategoryTabs';
+import { computeDiscoverSummaryStats } from '../lib/discoverSummaryStats';
+import {
+  buildFilterPatchForTypePill,
+  computeDiscoverTypeCounts,
+  resolveActiveTypePill,
+  type DiscoverTypeFilterId,
+} from '../lib/discoverTypeFilterBar';
+import { playUiSound } from '../lib/soundEffects';
+import {
+  computeStarGainsMap,
+  loadAllStarSnapshots,
+  selectTrendingProjects7d,
+} from '../lib/trendingStars';
 import { useVoiceSearch } from '../hooks/useVoiceSearch';
+import { DiscoverCategoryTabs } from './DiscoverCategoryTabs';
+import { DiscoverProjectGrowthSection } from './DiscoverProjectGrowthSection';
+import { DiscoverSummaryStatsCards } from './DiscoverSummaryStatsCards';
+import { DiscoverTypeFilterBar } from './DiscoverTypeFilterBar';
 import { DiscoveryScatterMap } from './DiscoveryScatterMap';
 import { GitHubTrendingBubbleChart } from './GitHubTrendingBubbleChart';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 import { ProjectCard } from './ProjectCard';
 import { ProjectComparisonModal } from './ProjectComparisonModal';
 import { TrendingVelocityChart } from './TrendingVelocityChart';
@@ -87,6 +111,7 @@ interface DiscoverPageProps {
   onOpenDetail: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
   onToggleBookmark: (project: CatalogProject) => void;
+  onNavigateSubmit?: () => void;
 }
 
 export function DiscoverPage({
@@ -107,6 +132,7 @@ export function DiscoverPage({
   onOpenDetail,
   onToggleLike,
   onToggleBookmark,
+  onNavigateSubmit,
 }: DiscoverPageProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [showSearchNote, setShowSearchNote] = useState(false);
@@ -137,14 +163,19 @@ export function DiscoverPage({
     [projects]
   );
 
-  const starGains7dMap = useMemo(
-    () => computeStarGainsMap(projects),
+  const snapshotsByRepo = useMemo(
+    () => loadAllStarSnapshots(),
     [projects, snapshotRevision]
   );
 
+  const starGains7dMap = useMemo(
+    () => computeStarGainsMap(projects, { snapshotsByRepo }),
+    [projects, snapshotsByRepo]
+  );
+
   const trendingMap = useMemo(
-    () => selectTrendingProjects7d(projects, { maxBadges: 3 }),
-    [projects, snapshotRevision]
+    () => selectTrendingProjects7d(projects, { maxBadges: 3, snapshotsByRepo }),
+    [projects, snapshotsByRepo]
   );
 
   const engagementTrendingScores = useMemo(
@@ -249,6 +280,80 @@ export function DiscoverPage({
       });
     },
     [filters.tags, onUpdateFilters]
+  );
+
+  const activeCategoryTab = useMemo(
+    () => resolveActiveDiscoverTab(filters),
+    [filters.type, filters.category]
+  );
+
+  const categoryTabCounts = useMemo(
+    () => computeDiscoverTabCounts(projects, filters),
+    [projects, filters]
+  );
+
+  const handleSelectCategoryTab = useCallback(
+    (tabId: DiscoverCategoryTabId) => {
+      onUpdateFilters(buildFilterPatchForDiscoverTab(tabId));
+    },
+    [onUpdateFilters]
+  );
+
+  const activeTypePill = useMemo(
+    () => resolveActiveTypePill(filters),
+    [filters.type]
+  );
+
+  const typePillCounts = useMemo(
+    () => computeDiscoverTypeCounts(projects, filters),
+    [projects, filters]
+  );
+
+  const handleSelectTypePill = useCallback(
+    (typeId: DiscoverTypeFilterId) => {
+      onUpdateFilters(buildFilterPatchForTypePill(typeId, filters));
+    },
+    [filters, onUpdateFilters]
+  );
+
+  const engagementGrowthMap = useMemo(() => {
+    const ranked = rankTrendingByEngagement7d(projects, { activities: recentActivities });
+    return new Map(ranked.map((entry) => [entry.project.id, entry.info]));
+  }, [projects, recentActivities]);
+
+  const summaryStats = useMemo(
+    () =>
+      computeDiscoverSummaryStats(projects, {
+        filteredProjects: filtered,
+        starGains7dMap,
+        engagementScoresMap: engagementGrowthMap,
+      }),
+    [projects, filtered, starGains7dMap, engagementGrowthMap]
+  );
+
+  const hasActiveFilters = Boolean(
+    filters.q.trim() ||
+      filters.type !== 'all' ||
+      filters.category !== 'all' ||
+      filters.tags.length > 0 ||
+      filters.platform !== 'all' ||
+      filters.hosting !== 'all' ||
+      filters.backend !== 'all' ||
+      filters.country !== 'all' ||
+      filters.lang !== 'all' ||
+      filters.license !== 'all' ||
+      filters.pricing !== 'all' ||
+      filters.verified !== 'all' ||
+      filters.minStars > 0 ||
+      filters.updatedWithinDays > 0
+  );
+
+  const handleInspectProjectById = useCallback(
+    (projectId: string) => {
+      const target = projects.find((p) => p.id === projectId);
+      if (target) onOpenDetail(target);
+    },
+    [projects, onOpenDetail]
   );
 
   const renderFilterForm = () => (
@@ -569,21 +674,27 @@ export function DiscoverPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
-            {copy.title}
-          </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800">
+        <div className="flex items-center gap-3.5">
+          <PastelCategoryIcon role="discover" size="lg" />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
+              {copy.title}
+            </h1>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{copy.subtitle}</p>
+          </div>
         </div>
 
         <button
           type="button"
-          onClick={() => setShowSearchNote((prev) => !prev)}
+          onClick={() => {
+            playUiSound('tap');
+            setShowSearchNote((prev) => !prev);
+          }}
           aria-expanded={showSearchNote}
-          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+          className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
         >
-          <Info className="h-3.5 w-3.5 text-blue-700 dark:text-blue-400" />
+          <Info className="h-3.5 w-3.5 text-blue-700 dark:text-sky-400" />
           <span>{wsCopy.koreanSearchNoteTitle}</span>
         </button>
       </div>
@@ -594,8 +705,51 @@ export function DiscoverPage({
         </div>
       )}
 
+      {/* Persistent Project Type Filter Pill Bar */}
+      <DiscoverTypeFilterBar
+        language={language}
+        activeType={activeTypePill}
+        activeCategory={filters.category}
+        counts={typePillCounts}
+        filteredCount={filtered.length}
+        totalCount={projects.length}
+        hasActiveFilters={hasActiveFilters}
+        onSelectType={handleSelectTypePill}
+        onResetFilters={onResetFilters}
+      />
+
+      {/* Top Summary Stats Cards */}
+      <DiscoverSummaryStatsCards
+        language={language}
+        stats={summaryStats}
+        hasActiveFilters={hasActiveFilters}
+        isLoading={isLoading}
+        onSelectCategoryTab={handleSelectCategoryTab}
+        onInspectProjectById={handleInspectProjectById}
+      />
+
+      {/* Project Growth (Last 30 Days Submissions - Recharts) */}
+      <DiscoverProjectGrowthSection
+        language={language}
+        allProjects={projects}
+        filteredProjects={filtered}
+        hasActiveFilters={hasActiveFilters}
+        isLoading={isLoading}
+        onResetFilters={onResetFilters}
+        onNavigateSubmit={onNavigateSubmit}
+      />
+
+      {/* Top Quick Category Filter Tabs */}
+      <DiscoverCategoryTabs
+        language={language}
+        activeTab={activeCategoryTab}
+        counts={categoryTabCounts}
+        ariaLabel={copy.filterCategory}
+        onSelectTab={handleSelectCategoryTab}
+      />
+
       {/* Search Bar & Toolbar */}
-      <div className="mt-6">
+      <div className="mt-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-[260px] flex-1 items-center gap-2 rounded-lg border border-slate-300 bg-white py-1 pl-3 pr-1.5 dark:border-slate-700 dark:bg-slate-950">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
@@ -693,50 +847,10 @@ export function DiscoverPage({
         />
       </div>
 
-      {/* Quick Category Filter Bar */}
-      <div
-        role="group"
-        aria-label={copy.filterCategory}
-        className="mt-4 flex flex-wrap items-center gap-2"
-      >
-        <button
-          type="button"
-          aria-pressed={filters.category === 'all'}
-          onClick={() => onUpdateFilters({ category: 'all', page: 1 })}
-          className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-            filters.category === 'all'
-              ? 'border-blue-700 bg-blue-700 text-white dark:border-blue-500 dark:bg-blue-600'
-              : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          {copy.allCategoriesOption}
-        </button>
-        {VALID_PROJECT_CATEGORIES.map((category) => {
-          const isActive = filters.category === category;
-          return (
-            <button
-              key={category}
-              type="button"
-              aria-pressed={isActive}
-              onClick={() =>
-                onUpdateFilters({ category: isActive ? 'all' : category, page: 1 })
-              }
-              className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                isActive
-                  ? 'border-blue-700 bg-blue-700 text-white dark:border-blue-500 dark:bg-blue-600'
-                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800'
-              }`}
-            >
-              {PROJECT_CATEGORY_LABELS[language][category]}
-            </button>
-          );
-        })}
-      </div>
-
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* Desktop Faceted Filter Sidebar */}
         <aside className="hidden lg:col-span-3 lg:block">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
             {renderFilterForm()}
           </div>
         </aside>
@@ -909,6 +1023,12 @@ export function DiscoverPage({
                   highlightContext={highlightContext}
                   makerClaims={userClaims}
                   selectedTags={filters.tags}
+                  showStarSparkline
+                  starSnapshots={
+                    proj.githubRepo
+                      ? snapshotsByRepo[proj.githubRepo.toLowerCase()]
+                      : undefined
+                  }
                   onSelectTag={handleToggleTag}
                   onOpenDetail={onOpenDetail}
                   onToggleLike={onToggleLike}

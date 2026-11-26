@@ -29,6 +29,7 @@ import type {
   ProjectMilestoneRecord,
   ProjectReportRecord,
 } from '../types/vibeatlas';
+import type { FirestoreProjectUpdatePayload } from './projectEdit';
 
 function parseHistoricalSignals(raw: unknown): DailySignalPoint[] | undefined {
   if (!Array.isArray(raw)) return undefined;
@@ -253,6 +254,46 @@ export async function updateProjectGitHubStats(
       license: license.slice(0, 64),
       lastSyncedAt: new Date().toISOString(),
       provenanceSource: 'github_sync',
+      updatedAt: serverTimestamp(),
+    });
+  } catch (err) {
+    handleFirestoreError(err, OperationType.UPDATE, path);
+  }
+}
+
+export async function updateProjectInFirestore(
+  projectId: string,
+  payload: FirestoreProjectUpdatePayload
+): Promise<void> {
+  const path = `projects/${projectId}`;
+  try {
+    await updateDoc(doc(db, 'projects', projectId), {
+      name: payload.name.slice(0, 120),
+      tagline: payload.tagline.slice(0, 220),
+      taglineKo: payload.taglineKo.slice(0, 220),
+      description: payload.description.slice(0, 4000),
+      descriptionKo: payload.descriptionKo.slice(0, 4000),
+      contentType: payload.contentType,
+      categories: payload.categories.slice(0, 6),
+      techStack: payload.techStack.slice(0, 12),
+      developmentPlatform: payload.developmentPlatform,
+      hostingProvider: payload.hostingProvider,
+      backendTech: payload.backendTech,
+      country: payload.country.slice(0, 12),
+      language: payload.language,
+      license: payload.license.slice(0, 64),
+      pricingModel: payload.pricingModel,
+      liveDemoUrl: payload.liveDemoUrl.slice(0, 500),
+      websiteUrl: payload.websiteUrl.slice(0, 500),
+      githubRepo: payload.githubRepo.slice(0, 160),
+      githubUrl: payload.githubUrl.slice(0, 500),
+      thumbnailUrl: payload.thumbnailUrl.slice(0, 500),
+      makerName: payload.makerName.slice(0, 100),
+      makerHandle: payload.makerHandle.slice(0, 80),
+      githubStars: Math.max(0, Math.floor(payload.githubStars)),
+      githubForks: Math.max(0, Math.floor(payload.githubForks)),
+      lastSyncedAt: payload.lastSyncedAt.slice(0, 64),
+      provenanceSource: payload.provenanceSource,
       updatedAt: serverTimestamp(),
     });
   } catch (err) {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { motion } from 'motion/react';
 import {
   AlertTriangle,
   Bookmark,
@@ -11,6 +12,7 @@ import {
   Heart,
   HelpCircle,
   Link2,
+  Pencil,
   RefreshCw,
   ShieldCheck,
   Star,
@@ -51,17 +53,21 @@ import {
 } from '../lib/firestoreRepo';
 import { sanitizeExternalUrl, ownershipClaimSchema, reportSubmissionSchema } from '../lib/validation';
 import { resolveMakerVerification } from '../lib/makerVerification';
+import { canUserEditProject } from '../lib/projectEdit';
 import {
   computeCatalogHighlightContext,
   resolveProjectHighlightBadges,
 } from '../lib/projectHighlightBadges';
+import { playUiSound } from '../lib/soundEffects';
 import { buildProjectShareUrl, buildPromotionCopy } from '../lib/submissionPromotion';
 import { MakerTrustPanel, MakerVerificationBadge } from './MakerVerificationBadge';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 import { ProjectCommunityActivity } from './ProjectCommunityActivity';
 import { ProjectGrowthChart } from './ProjectGrowthChart';
 import { ProjectHighlightBadges } from './ProjectHighlightBadges';
 import { ProjectInsightsDashboard } from './ProjectInsightsDashboard';
 import { ProjectMilestoneTimeline } from './ProjectMilestoneTimeline';
+import { ResilientProjectImage } from './ResilientProjectImage';
 import { VibeScoreGauge } from './VibeScoreGauge';
 import { VibeVolatilityTrendChart } from './VibeVolatilityTrendChart';
 
@@ -93,6 +99,8 @@ interface ProjectDetailModalProps {
   ) => Promise<void>;
   onSignIn: () => void;
   onSelectTag?: (tag: string) => void;
+  onEditProject?: (project: CatalogProject) => void;
+  editSuccessMessage?: string | null;
 }
 
 export function ProjectDetailModal({
@@ -115,6 +123,8 @@ export function ProjectDetailModal({
   onSubmitClaim,
   onSignIn,
   onSelectTag,
+  onEditProject,
+  editSuccessMessage = null,
 }: ProjectDetailModalProps) {
   const [activeActionForm, setActiveActionForm] = useState<'none' | 'report' | 'claim'>('none');
   const [reportReason, setReportReason] =
@@ -235,6 +245,7 @@ export function ProjectDetailModal({
     language === 'ko' && project.descriptionKo ? project.descriptionKo : project.description;
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
   const makerVerification = resolveMakerVerification(project, userClaims, user?.uid ?? null);
+  const editPermission = canUserEditProject(project, user);
   const highlightBadges = resolveProjectHighlightBadges(project, {
     context: highlightContext,
     activities: communityActivities,
@@ -300,8 +311,11 @@ export function ProjectDetailModal({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 sm:p-6"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.16 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-[2px] sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="detail-modal-title"
@@ -309,40 +323,48 @@ export function ProjectDetailModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 14 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 360, damping: 28 }}
+        className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950"
+      >
         {/* Top Modal Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/95">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-              <span>{CONTENT_TYPE_LABELS[language][project.contentType]}</span>
-              <span aria-hidden="true">·</span>
-              <span>{project.makerName}</span>
-              {project.makerHandle && (
-                <>
-                  <span aria-hidden="true">·</span>
-                  <span className="font-mono">{project.makerHandle}</span>
-                </>
-              )}
-              <span aria-hidden="true">·</span>
-              <span>{VERIFICATION_LABELS[language][project.verificationStatus]}</span>
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-2.5">
-              <h2
-                id="detail-modal-title"
-                className="truncate text-xl font-bold text-slate-900 dark:text-white"
-              >
-                {project.name}
-              </h2>
-              <MakerVerificationBadge
-                verification={makerVerification}
-                language={language}
-                variant="header"
-              />
-              <ProjectHighlightBadges
-                badges={highlightBadges}
-                language={language}
-                variant="detail"
-              />
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white/95 px-6 py-4 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/95">
+          <div className="flex min-w-0 items-center gap-3">
+            <PastelCategoryIcon contentType={project.contentType} size="md" />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                <span>{CONTENT_TYPE_LABELS[language][project.contentType]}</span>
+                <span aria-hidden="true">·</span>
+                <span>{project.makerName}</span>
+                {project.makerHandle && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span className="font-mono">{project.makerHandle}</span>
+                  </>
+                )}
+                <span aria-hidden="true">·</span>
+                <span>{VERIFICATION_LABELS[language][project.verificationStatus]}</span>
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-2.5">
+                <h2
+                  id="detail-modal-title"
+                  className="truncate text-xl font-bold text-slate-900 dark:text-white"
+                >
+                  {project.name}
+                </h2>
+                <MakerVerificationBadge
+                  verification={makerVerification}
+                  language={language}
+                  variant="header"
+                />
+                <ProjectHighlightBadges
+                  badges={highlightBadges}
+                  language={language}
+                  variant="detail"
+                />
+              </div>
             </div>
           </div>
 
@@ -350,19 +372,32 @@ export function ProjectDetailModal({
             type="button"
             aria-label={copy.close}
             onClick={onClose}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="space-y-8 p-6">
-          {/* Concise & Full Description */}
-          <div>
-            <p className="text-base font-medium text-slate-800 dark:text-slate-200">{tagline}</p>
-            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600 dark:text-slate-300">
-              {fullDesc}
-            </p>
+          {/* Concise Visual Preview + Description */}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-12 md:items-center">
+            <div className="md:col-span-5">
+              <ResilientProjectImage
+                src={project.thumbnailUrl}
+                alt={project.name}
+                contentType={project.contentType}
+                subtitle={CONTENT_TYPE_LABELS[language][project.contentType]}
+                aspectClassName="aspect-[16/10]"
+              />
+            </div>
+            <div className="md:col-span-7">
+              <p className="text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                {tagline}
+              </p>
+              <p className="mt-2.5 whitespace-pre-line text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                {fullDesc}
+              </p>
+            </div>
           </div>
 
           {/* Separated Metric Summary (Never Blended!) */}
@@ -419,14 +454,27 @@ export function ProjectDetailModal({
             </div>
           </div>
 
+          {editSuccessMessage && (
+            <div
+              role="status"
+              data-testid="detail-edit-success-banner"
+              className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+            >
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>{editSuccessMessage}</span>
+            </div>
+          )}
+
           {/* Maker Verification & Ownership Trust Panel */}
           <MakerTrustPanel
             verification={makerVerification}
             language={language}
             claimFormOpen={activeActionForm === 'claim'}
+            canEdit={editPermission.allowed && Boolean(onEditProject)}
             onRequestClaim={() =>
               setActiveActionForm((prev) => (prev === 'claim' ? 'none' : 'claim'))
             }
+            onEditProject={onEditProject ? () => onEditProject(project) : undefined}
           />
 
           {activeActionForm === 'claim' && (
@@ -577,6 +625,18 @@ export function ProjectDetailModal({
                   <span>{cardCopy.bookmarkAction}</span>
                 </button>
 
+                {editPermission.allowed && onEditProject && (
+                  <button
+                    type="button"
+                    data-testid="detail-edit-project-btn"
+                    onClick={() => onEditProject(project)}
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/50"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    <span>{copy.editProject}</span>
+                  </button>
+                )}
+
                 {project.githubRepo && (
                   <button
                     type="button"
@@ -591,9 +651,10 @@ export function ProjectDetailModal({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setActiveActionForm((prev) => (prev === 'claim' ? 'none' : 'claim'))
-                  }
+                  onClick={() => {
+                    playUiSound('tap');
+                    setActiveActionForm((prev) => (prev === 'claim' ? 'none' : 'claim'));
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <ShieldCheck className="h-3.5 w-3.5" />
@@ -602,9 +663,10 @@ export function ProjectDetailModal({
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setActiveActionForm((prev) => (prev === 'report' ? 'none' : 'report'))
-                  }
+                  onClick={() => {
+                    playUiSound('tap');
+                    setActiveActionForm((prev) => (prev === 'report' ? 'none' : 'report'));
+                  }}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                   <Flag className="h-3.5 w-3.5" />
@@ -627,6 +689,7 @@ export function ProjectDetailModal({
                     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
                       void navigator.clipboard.writeText(url).catch(() => undefined);
                     }
+                    playUiSound('sparkle');
                     setPromoCopied('link');
                   }}
                   className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -652,6 +715,7 @@ export function ProjectDetailModal({
                     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
                       void navigator.clipboard.writeText(text).catch(() => undefined);
                     }
+                    playUiSound('sparkle');
                     setPromoCopied('pitch');
                   }}
                   className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -912,7 +976,7 @@ export function ProjectDetailModal({
             </div>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -1,9 +1,9 @@
 import type { CatalogProject, DailySignalPoint } from '../types/vibeatlas';
 
-export const HERO_IMAGE_PATH = '/src/assets/images/hero_atlas_studio_1795226403821.jpg';
-export const MCP_SHOWCASE_IMAGE = '/src/assets/images/showcase_mcp_bridge_1795226404508.jpg';
-export const WORKSPACE_SHOWCASE_IMAGE = '/src/assets/images/showcase_ai_workspace_1795226405445.jpg';
-export const KOREAN_MAKERS_IMAGE = '/src/assets/images/showcase_korean_makers_1795226404020.jpg';
+export const HERO_IMAGE_PATH = '/src/assets/images/pastel_hero_atlas_1795623403320.jpg';
+export const MCP_SHOWCASE_IMAGE = '/src/assets/images/pastel_mcp_nodes_1795623403621.jpg';
+export const WORKSPACE_SHOWCASE_IMAGE = '/src/assets/images/pastel_ai_workspace_1795623404729.jpg';
+export const KOREAN_MAKERS_IMAGE = '/src/assets/images/pastel_makers_studio_1795623404220.jpg';
 
 function makeSignalSeries(baseLikes: number, baseBookmarks: number): DailySignalPoint[] {
   const days = 14;

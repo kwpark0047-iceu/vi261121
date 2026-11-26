@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BarChart3, Bookmark, Heart, LogIn, Plus, RefreshCw, Star, Trash2 } from 'lucide-react';
+import {
+  BarChart3,
+  Bookmark,
+  CheckCircle2,
+  Heart,
+  LogIn,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Star,
+  Trash2,
+} from 'lucide-react';
 import type { User } from 'firebase/auth';
 import type {
   ActivePage,
@@ -16,9 +27,12 @@ import {
   type MakerAnalyticsSort,
 } from '../lib/makerAnalytics';
 import { computeCatalogHighlightContext } from '../lib/projectHighlightBadges';
+import { getOwnedEditableProjects } from '../lib/projectEdit';
+import { playUiSound } from '../lib/soundEffects';
 import { selectTrendingByEngagement7d } from '../lib/trendingEngagement';
 import { resolveMakerVerification } from '../lib/makerVerification';
 import { MakerVerificationBadge } from './MakerVerificationBadge';
+import { PastelCategoryIcon } from './PastelCategoryIcon';
 import { ProjectCard } from './ProjectCard';
 
 interface MakerDashboardPageProps {
@@ -31,9 +45,11 @@ interface MakerDashboardPageProps {
   claims: OwnershipClaimRecord[];
   recentActivities?: ReadonlyArray<ProjectActivityRecord>;
   syncingProjectId: string | null;
+  editSuccessMessage?: string | null;
   onSignIn: () => void;
   onNavigate: (page: ActivePage) => void;
   onOpenDetail: (project: CatalogProject) => void;
+  onEditProject: (project: CatalogProject) => void;
   onToggleLike: (project: CatalogProject) => void;
   onToggleBookmark: (project: CatalogProject) => void;
   onSyncProject: (project: CatalogProject) => void;
@@ -52,9 +68,11 @@ export function MakerDashboardPage({
   claims,
   recentActivities = [],
   syncingProjectId,
+  editSuccessMessage = null,
   onSignIn,
   onNavigate,
   onOpenDetail,
+  onEditProject,
   onToggleLike,
   onToggleBookmark,
   onSyncProject,
@@ -62,6 +80,8 @@ export function MakerDashboardPage({
 }: MakerDashboardPageProps) {
   const [tab, setTab] = useState<MakerTab>(user ? 'projects' : 'bookmarks');
   const [analyticsSort, setAnalyticsSort] = useState<MakerAnalyticsSort>('engagement');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const prevUidRef = useRef<string | null>(user?.uid ?? null);
   const copy = UI_STRINGS[language].maker;
   const highlightContext = useMemo(() => computeCatalogHighlightContext(projects), [projects]);
@@ -83,7 +103,7 @@ export function MakerDashboardPage({
   }, [user?.uid]);
 
   const myProjects = useMemo(
-    () => (user ? projects.filter((p) => p.ownerUid === user.uid) : []),
+    () => getOwnedEditableProjects(projects, user),
     [user, projects]
   );
   const bookmarkedProjects = useMemo(
@@ -102,18 +122,24 @@ export function MakerDashboardPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
-            {copy.title}
-          </h1>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{copy.subtitle}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-6 dark:border-slate-800">
+        <div className="flex items-center gap-3.5">
+          <PastelCategoryIcon role="makers" size="lg" />
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl dark:text-white">
+              {copy.title}
+            </h1>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{copy.subtitle}</p>
+          </div>
         </div>
 
         <button
           type="button"
-          onClick={() => onNavigate('submit')}
-          className="rounded-lg bg-blue-700 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-800"
+          onClick={() => {
+            playUiSound('tap');
+            onNavigate('submit');
+          }}
+          className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
         >
           {UI_STRINGS[language].nav.primaryCta}
         </button>
@@ -142,16 +168,19 @@ export function MakerDashboardPage({
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <div
           role="tablist"
-          className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-900"
+          className="inline-flex rounded-2xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-800 dark:bg-slate-900"
         >
           <button
             type="button"
             role="tab"
             aria-selected={tab === 'projects'}
-            onClick={() => setTab('projects')}
-            className={`whitespace-nowrap rounded-md px-3.5 py-1.5 text-xs font-semibold ${
+            onClick={() => {
+              playUiSound('tap');
+              setTab('projects');
+            }}
+            className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-semibold ${
               tab === 'projects'
-                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'text-slate-600 dark:text-slate-300'
             }`}
           >
@@ -161,10 +190,13 @@ export function MakerDashboardPage({
             type="button"
             role="tab"
             aria-selected={tab === 'bookmarks'}
-            onClick={() => setTab('bookmarks')}
-            className={`whitespace-nowrap rounded-md px-3.5 py-1.5 text-xs font-semibold ${
+            onClick={() => {
+              playUiSound('tap');
+              setTab('bookmarks');
+            }}
+            className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-semibold ${
               tab === 'bookmarks'
-                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'text-slate-600 dark:text-slate-300'
             }`}
           >
@@ -174,10 +206,13 @@ export function MakerDashboardPage({
             type="button"
             role="tab"
             aria-selected={tab === 'governance'}
-            onClick={() => setTab('governance')}
-            className={`whitespace-nowrap rounded-md px-3.5 py-1.5 text-xs font-semibold ${
+            onClick={() => {
+              playUiSound('tap');
+              setTab('governance');
+            }}
+            className={`whitespace-nowrap rounded-xl px-3.5 py-1.5 text-xs font-semibold ${
               tab === 'governance'
-                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                ? 'bg-white text-slate-900 shadow-xs dark:bg-slate-800 dark:text-white'
                 : 'text-slate-600 dark:text-slate-300'
             }`}
           >
@@ -188,6 +223,16 @@ export function MakerDashboardPage({
 
       {/* Tab Content */}
       <div className="mt-6">
+        {editSuccessMessage && (
+          <div
+            role="status"
+            className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/50 dark:text-emerald-300"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{editSuccessMessage}</span>
+          </div>
+        )}
+
         {tab === 'projects' && (
           <div className="space-y-6">
             {/* Project Engagement Analytics Section */}
@@ -329,13 +374,24 @@ export function MakerDashboardPage({
                             className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40"
                           >
                             <td className="px-5 py-3">
-                              <button
-                                type="button"
-                                onClick={() => onOpenDetail(row.project)}
-                                className="font-semibold text-slate-900 hover:text-blue-700 hover:underline dark:text-white dark:hover:text-blue-400"
-                              >
-                                {row.project.name}
-                              </button>
+                              <div className="flex items-center justify-between gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenDetail(row.project)}
+                                  className="font-semibold text-slate-900 hover:text-blue-700 hover:underline dark:text-white dark:hover:text-blue-400"
+                                >
+                                  {row.project.name}
+                                </button>
+                                <button
+                                  type="button"
+                                  aria-label={`${copy.editProject}: ${row.project.name}`}
+                                  onClick={() => onEditProject(row.project)}
+                                  className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-slate-200 px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-800 dark:hover:bg-blue-950/50 dark:hover:text-blue-300"
+                                >
+                                  <Pencil className="h-3 w-3" aria-hidden="true" />
+                                  <span>{copy.editProject}</span>
+                                </button>
+                              </div>
                               <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
                                 <span>{row.project.verificationStatus}</span>
                                 <span aria-hidden="true">·</span>
@@ -436,9 +492,14 @@ export function MakerDashboardPage({
                 <div className="space-y-3">
                   {myProjects.map((proj) => {
                     const projTotalEngagement = proj.likesCount + proj.bookmarksCount;
+                    const tagline =
+                      language === 'ko' && proj.taglineKo ? proj.taglineKo : proj.tagline;
+                    const updatedDate = proj.updatedAtIso ? proj.updatedAtIso.slice(0, 10) : '';
+                    const isConfirmingDelete = confirmDeleteId === proj.id;
                     return (
                       <div
                         key={proj.id}
+                        data-testid={`maker-owned-card-${proj.slug}`}
                         className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                       >
                         <div className="min-w-0 flex-1">
@@ -456,6 +517,11 @@ export function MakerDashboardPage({
                               variant="card"
                             />
                           </div>
+                          {tagline && (
+                            <p className="mt-1 line-clamp-1 text-xs text-slate-600 dark:text-slate-300">
+                              {tagline}
+                            </p>
+                          )}
                           <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                             <span>{proj.verificationStatus}</span>
                             <span aria-hidden="true">·</span>
@@ -474,15 +540,39 @@ export function MakerDashboardPage({
                             <span className="font-mono tabular-nums">
                               ★ {proj.githubStars.toLocaleString()}
                             </span>
+                            {updatedDate && (
+                              <>
+                                <span aria-hidden="true">·</span>
+                                <span className="font-mono tabular-nums">
+                                  {copy.lastUpdatedPrefix}: {updatedDate}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            data-testid={`maker-edit-${proj.slug}`}
+                            onClick={() => onEditProject(proj)}
+                            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/60 dark:text-blue-200 dark:hover:bg-blue-900/50"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                            <span>{copy.editProject}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onOpenDetail(proj)}
+                            className="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                          >
+                            {copy.viewDetail}
+                          </button>
                           {proj.githubRepo && (
                             <button
                               type="button"
                               disabled={syncingProjectId === proj.id}
                               onClick={() => onSyncProject(proj)}
-                              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                             >
                               <RefreshCw
                                 className={`h-3.5 w-3.5 ${syncingProjectId === proj.id ? 'animate-spin' : ''}`}
@@ -490,14 +580,44 @@ export function MakerDashboardPage({
                               <span>{copy.resyncGithub}</span>
                             </button>
                           )}
-                          <button
-                            type="button"
-                            onClick={() => void onDeleteProject(proj.id)}
-                            className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/40"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            <span>{copy.deleteProject}</span>
-                          </button>
+                          {isConfirmingDelete ? (
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={deletingId === proj.id}
+                                onClick={async () => {
+                                  setDeletingId(proj.id);
+                                  try {
+                                    await onDeleteProject(proj.id);
+                                    setConfirmDeleteId(null);
+                                  } finally {
+                                    setDeletingId(null);
+                                  }
+                                }}
+                                className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-60"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>{copy.confirmDeleteLabel}</span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={deletingId === proj.id}
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="inline-flex shrink-0 items-center whitespace-nowrap rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                              >
+                                {copy.cancelDeleteLabel}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setConfirmDeleteId(proj.id)}
+                              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/40"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              <span>{copy.deleteProject}</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     );

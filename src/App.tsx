@@ -1,8 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut, type User } from 'firebase/auth';
+import { MotionConfig } from 'motion/react';
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  type User,
+} from 'firebase/auth';
 import { CURATED_SEED_PROJECTS } from './data/seedCatalog';
 import { UI_STRINGS } from './data/i18n';
-import { auth, googleAuthProvider } from './lib/firebase';
+import {
+  playUiSound,
+  readSoundPreference,
+  saveSoundPreference,
+} from './lib/soundEffects';
+import {
+  canAttemptRedirectFallback,
+  parseAuthError,
+  type ParsedAuthError,
+} from './lib/authErrors';
+import { activeFirebaseProjectId, auth, googleAuthProvider } from './lib/firebase';
 import {
   createFirestoreProject,
   deleteFirestoreProject,
@@ -18,7 +36,12 @@ import {
   toggleFirestoreBookmark,
   toggleFirestoreLike,
   updateProjectGitHubStats,
+  updateProjectInFirestore,
 } from './lib/firestoreRepo';
+import {
+  canUserEditProject,
+  type FirestoreProjectUpdatePayload,
+} from './lib/projectEdit';
 import {
   loadLocalProjectActivities,
   recordLocalProjectActivity,
@@ -51,6 +74,8 @@ import { GitHubStarsPage } from './components/GitHubStarsPage';
 import { SubmitProjectPage } from './components/SubmitProjectPage';
 import { MakerDashboardPage } from './components/MakerDashboardPage';
 import { ProjectDetailModal } from './components/ProjectDetailModal';
+import { EditProjectModal } from './components/EditProjectModal';
+import { AuthErrorBanner } from './components/AuthErrorBanner';
 
 const STORAGE_LANG_KEY = 'vibeatlas_lang_v1';
 const STORAGE_THEME_KEY = 'vibeatlas_theme_v1';
@@ -103,19 +128,23 @@ export default function App() {
     }
   });
 
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => readSoundPreference());
+
   const [activePage, setActivePage] = useState<ActivePage>(initialRoute.tab);
   const [selectedSlug, setSelectedSlug] = useState<string | null>(initialRoute.projectSlug);
   const [filters, setFilters] = useState<SearchFilters>(initialRoute.filters);
 
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<ParsedAuthError | null>(null);
 
   const [firestoreProjects, setFirestoreProjects] = useState<CatalogProject[]>([]);
   const [githubSyncedMap, setGithubSyncedMap] = useState<Record<string, GitHubRepoMetadata>>(() =>
     readGithubSessionCache()
   );
   const [syncingProjectId, setSyncingProjectId] = useState<string | null>(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editSuccessMessage, setEditSuccessMessage] = useState<string | null>(null);
   const [snapshotRevision, setSnapshotRevision] = useState<number>(0);
   const [isLoadingCatalog] = useState<boolean>(false);
 
@@ -150,6 +179,21 @@ export default function App() {
       // ignore storage failure
     }
   }, [darkMode]);
+
+  useEffect(() => {
+    saveSoundPreference(soundEnabled);
+  }, [soundEnabled]);
+
+  const handleToggleSound = useCallback(() => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      saveSoundPreference(next);
+      if (next) {
+        playUiSound('chime', { force: true });
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : language;
@@ -204,10 +248,14 @@ export default function App() {
 
   // Firebase Auth & Firestore subscriptions
   useEffect(() => {
+    void getRedirectResult(auth).catch((err) => {
+      setAuthError(parseAuthError(err, { projectId: activeFirebaseProjectId }));
+    });
     const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setAuthLoading(false);
       if (currentUser) {
+        setAuthError(null);
         void syncSignedInUserProfile(currentUser).catch((err) => {
           console.error('Failed syncing user profile:', err);
         });
@@ -439,7 +487,16 @@ export default function App() {
     try {
       await signInWithPopup(auth, googleAuthProvider);
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Google Sign-In failed');
+      setAuthError(parseAuthError(err, { projectId: activeFirebaseProjectId }));
+    }
+  }, []);
+
+  const handleRetryRedirectSignIn = useCallback(async () => {
+    setAuthError(null);
+    try {
+      await signInWithRedirect(auth, googleAuthProvider);
+    } catch (err) {
+      setAuthError(parseAuthError(err, { projectId: activeFirebaseProjectId }));
     }
   }, []);
 
@@ -450,6 +507,7 @@ export default function App() {
   const handleToggleLike = useCallback(
     async (project: CatalogProject) => {
       const currentlyLiked = guestLikes.has(project.id);
+      playUiSound(currentlyLiked ? 'tap' : 'pop');
       const next = new Set(guestLikes);
       if (currentlyLiked) next.delete(project.id);
       else next.add(project.id);
@@ -489,6 +547,7 @@ export default function App() {
   const handleToggleBookmark = useCallback(
     async (project: CatalogProject) => {
       const currentlyBookmarked = effectiveBookmarks.has(project.id);
+      playUiSound(currentlyBookmarked ? 'tap' : 'bookmark');
       const actorUid = user?.uid || 'guest';
       if (currentlyBookmarked) {
         setLocalActivities(
@@ -571,186 +630,264 @@ export default function App() {
     ) => {
       if (!user) throw new Error('Sign in required');
       await createFirestoreProject(user, payload);
+      playUiSound('sparkle');
       setActivePage('discover');
       setSelectedSlug(payload.slug);
     },
     [user]
   );
 
+  const editingProject = useMemo(
+    () => (editingProjectId ? allProjects.find((p) => p.id === editingProjectId) ?? null : null),
+    [allProjects, editingProjectId]
+  );
+
+  const editingPermission = useMemo(
+    () => canUserEditProject(editingProject, user),
+    [editingProject, user]
+  );
+
+  useEffect(() => {
+    if (!editSuccessMessage) return;
+    const timer = window.setTimeout(() => setEditSuccessMessage(null), 4000);
+    return () => window.clearTimeout(timer);
+  }, [editSuccessMessage]);
+
+  const handleOpenEditProject = useCallback(
+    (project: CatalogProject) => {
+      const permission = canUserEditProject(project, user);
+      if (!permission.allowed) return;
+      setEditSuccessMessage(null);
+      setEditingProjectId(project.id);
+    },
+    [user]
+  );
+
+  const handleSaveProjectUpdate = useCallback(
+    async (project: CatalogProject, payload: FirestoreProjectUpdatePayload) => {
+      if (!user) throw new Error('Sign in required');
+      const permission = canUserEditProject(project, user);
+      if (!permission.allowed) throw new Error('Unauthorized project edit');
+      await updateProjectInFirestore(project.id, payload);
+      playUiSound('sparkle');
+      setEditSuccessMessage(
+        `${UI_STRINGS[language].maker.editSuccessNotice} (${payload.name})`
+      );
+    },
+    [user, language]
+  );
+
+  const openDetailWithSound = useCallback((project: CatalogProject) => {
+    playUiSound('chime');
+    setSelectedSlug(project.slug);
+  }, []);
+
   const footerCopy = UI_STRINGS[language].footer;
 
   return (
     <ErrorBoundary>
-      <div id="top" className="flex min-h-screen flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-        <TopNav
-          language={language}
-          activePage={activePage}
-          onNavigate={(page) => {
-            setActivePage(page);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
+      <MotionConfig reducedMotion="user">
+        <div
+          id="top"
+          className="flex min-h-screen flex-col bg-[#F7F9FC] text-slate-900 dark:bg-slate-950 dark:text-slate-100"
+        >
+          <TopNav
+            language={language}
+            activePage={activePage}
+            onNavigate={(page) => {
+              setActivePage(page);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
 
-        <WorkspaceBar
-          language={language}
-          onLanguageChange={setLanguage}
-          darkMode={darkMode}
-          onToggleDarkMode={() => setDarkMode((prev) => !prev)}
-          user={user}
-          authLoading={authLoading}
-          bookmarkCount={effectiveBookmarks.size}
-          onSignIn={() => void handleSignIn()}
-          onSignOut={() => void handleSignOut()}
-          onNavigate={setActivePage}
-        />
+          <WorkspaceBar
+            language={language}
+            onLanguageChange={setLanguage}
+            darkMode={darkMode}
+            onToggleDarkMode={() => setDarkMode((prev) => !prev)}
+            soundEnabled={soundEnabled}
+            onToggleSound={handleToggleSound}
+            user={user}
+            authLoading={authLoading}
+            bookmarkCount={effectiveBookmarks.size}
+            onSignIn={() => void handleSignIn()}
+            onSignOut={() => void handleSignOut()}
+            onNavigate={setActivePage}
+          />
 
-        {authError && (
-          <div className="mx-auto mt-3 max-w-7xl px-4 sm:px-6">
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
-              {authError}
+          {authError && (
+            <AuthErrorBanner
+              language={language}
+              authError={authError}
+              canUseRedirectFallback={canAttemptRedirectFallback()}
+              onRetryRedirect={() => void handleRetryRedirectSignIn()}
+              onDismiss={() => setAuthError(null)}
+            />
+          )}
+
+          <main className="flex-1">
+            {activePage === 'home' && (
+              <HomePage
+                language={language}
+                projects={allProjects}
+                likedIds={guestLikes}
+                bookmarkedIds={effectiveBookmarks}
+                user={user}
+                userClaims={userClaims}
+                firestoreActivities={firestoreActivities}
+                recentActivities={localActivities}
+                snapshotRevision={snapshotRevision}
+                onOpenDetail={openDetailWithSound}
+                onToggleLike={(p) => void handleToggleLike(p)}
+                onToggleBookmark={(p) => void handleToggleBookmark(p)}
+                onSearchAndDiscover={handleSearchAndDiscover}
+                onNavigate={setActivePage}
+                onSignIn={() => void handleSignIn()}
+                onSubscribeNewsletter={async (email) => {
+                  if (!user) throw new Error('Sign in required');
+                  await subscribeNewsletterInFirestore(user, email, language);
+                  playUiSound('sparkle');
+                }}
+              />
+            )}
+
+            {activePage === 'discover' && (
+              <DiscoverPage
+                language={language}
+                projects={discoverProjects}
+                filters={filters}
+                isLoading={isLoadingCatalog}
+                isLoadingWebApps={webAppsLoading}
+                webAppsError={webAppsError}
+                onRetryWebApps={() => void loadWebAppTop100(true)}
+                likedIds={guestLikes}
+                bookmarkedIds={effectiveBookmarks}
+                userClaims={userClaims}
+                recentActivities={localActivities}
+                snapshotRevision={snapshotRevision}
+                onUpdateFilters={handleUpdateFilters}
+                onResetFilters={handleResetFilters}
+                onOpenDetail={openDetailWithSound}
+                onToggleLike={(p) => void handleToggleLike(p)}
+                onToggleBookmark={(p) => void handleToggleBookmark(p)}
+                onNavigateSubmit={() => setActivePage('submit')}
+              />
+            )}
+
+            {activePage === 'stars' && (
+              <GitHubStarsPage
+                language={language}
+                catalogProjects={allProjects}
+                onOpenDetail={openDetailWithSound}
+              />
+            )}
+
+            {activePage === 'submit' && (
+              <SubmitProjectPage
+                language={language}
+                user={user}
+                onSignIn={() => void handleSignIn()}
+                onCreateProject={handleCreateProject}
+              />
+            )}
+
+            {activePage === 'maker' && (
+              <MakerDashboardPage
+                language={language}
+                user={user}
+                projects={allProjects}
+                likedIds={guestLikes}
+                bookmarkedIds={effectiveBookmarks}
+                reports={userReports}
+                claims={userClaims}
+                recentActivities={localActivities}
+                syncingProjectId={syncingProjectId}
+                editSuccessMessage={editSuccessMessage}
+                onSignIn={() => void handleSignIn()}
+                onNavigate={setActivePage}
+                onOpenDetail={openDetailWithSound}
+                onEditProject={handleOpenEditProject}
+                onToggleLike={(p) => void handleToggleLike(p)}
+                onToggleBookmark={(p) => void handleToggleBookmark(p)}
+                onSyncProject={(p) => void handleSyncSingleGithub(p)}
+                onDeleteProject={deleteFirestoreProject}
+              />
+            )}
+          </main>
+
+          <footer className="border-t border-slate-200/80 bg-white py-6 dark:border-slate-800/80 dark:bg-slate-950">
+            <div className="mx-auto flex max-w-7xl flex-col justify-between gap-2 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:px-6 dark:text-slate-400">
+              <p>{footerCopy.tagline}</p>
+              <p>{footerCopy.transparencyNote}</p>
             </div>
-          </div>
-        )}
+          </footer>
 
-        <main className="flex-1">
-          {activePage === 'home' && (
-            <HomePage
-              language={language}
-              projects={allProjects}
-              likedIds={guestLikes}
-              bookmarkedIds={effectiveBookmarks}
-              user={user}
-              userClaims={userClaims}
-              firestoreActivities={firestoreActivities}
-              recentActivities={localActivities}
-              snapshotRevision={snapshotRevision}
-              onOpenDetail={(p) => setSelectedSlug(p.slug)}
-              onToggleLike={(p) => void handleToggleLike(p)}
-              onToggleBookmark={(p) => void handleToggleBookmark(p)}
-              onSearchAndDiscover={handleSearchAndDiscover}
-              onNavigate={setActivePage}
-              onSignIn={() => void handleSignIn()}
-              onSubscribeNewsletter={async (email) => {
-                if (!user) throw new Error('Sign in required');
-                await subscribeNewsletterInFirestore(user, email, language);
-              }}
-            />
-          )}
+          <ProjectDetailModal
+            project={selectedProject}
+            allProjects={allProjects}
+            language={language}
+            user={user}
+            isLiked={selectedProject ? guestLikes.has(selectedProject.id) : false}
+            isBookmarked={selectedProject ? effectiveBookmarks.has(selectedProject.id) : false}
+            isSyncing={Boolean(selectedProject && syncingProjectId === selectedProject.id)}
+            localActivities={localActivities}
+            userReports={userReports}
+            userClaims={userClaims}
+            onClose={() => {
+              playUiSound('close');
+              setSelectedSlug(null);
+            }}
+            onSelectProject={openDetailWithSound}
+            onToggleLike={(p) => void handleToggleLike(p)}
+            onToggleBookmark={(p) => void handleToggleBookmark(p)}
+            onSyncSingleGithub={(p) => void handleSyncSingleGithub(p)}
+            onEditProject={handleOpenEditProject}
+            editSuccessMessage={editSuccessMessage}
+            onSubmitReport={async (proj, reason, details) => {
+              if (!user) throw new Error('Sign in required');
+              await submitReportToFirestore(user, proj, reason, details);
+              playUiSound('sparkle');
+              setLocalActivities(
+                recordLocalProjectActivity({
+                  id: `local_report_${proj.id}_${Date.now()}`,
+                  projectId: proj.id,
+                  projectSlug: proj.slug,
+                  actorUid: user.uid,
+                  actorName: user.displayName || '',
+                  actorHandle: '',
+                  type: 'report',
+                  reportReason: reason,
+                  createdAtIso: new Date().toISOString(),
+                })
+              );
+            }}
+            onSubmitClaim={async (proj, method, proof) => {
+              if (!user) throw new Error('Sign in required');
+              await submitOwnershipClaimToFirestore(user, proj, method, proof);
+              playUiSound('sparkle');
+            }}
+            onSignIn={() => void handleSignIn()}
+            onSelectTag={(tag) => {
+              playUiSound('tap');
+              setSelectedSlug(null);
+              setFilters({ ...DEFAULT_SEARCH_FILTERS, tags: [tag], page: 1 });
+              setActivePage('discover');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
 
-          {activePage === 'discover' && (
-            <DiscoverPage
-              language={language}
-              projects={discoverProjects}
-              filters={filters}
-              isLoading={isLoadingCatalog}
-              isLoadingWebApps={webAppsLoading}
-              webAppsError={webAppsError}
-              onRetryWebApps={() => void loadWebAppTop100(true)}
-              likedIds={guestLikes}
-              bookmarkedIds={effectiveBookmarks}
-              userClaims={userClaims}
-              recentActivities={localActivities}
-              snapshotRevision={snapshotRevision}
-              onUpdateFilters={handleUpdateFilters}
-              onResetFilters={handleResetFilters}
-              onOpenDetail={(p) => setSelectedSlug(p.slug)}
-              onToggleLike={(p) => void handleToggleLike(p)}
-              onToggleBookmark={(p) => void handleToggleBookmark(p)}
-            />
-          )}
-
-          {activePage === 'stars' && (
-            <GitHubStarsPage
-              language={language}
-              catalogProjects={allProjects}
-              onOpenDetail={(p) => setSelectedSlug(p.slug)}
-            />
-          )}
-
-          {activePage === 'submit' && (
-            <SubmitProjectPage
-              language={language}
-              user={user}
-              onSignIn={() => void handleSignIn()}
-              onCreateProject={handleCreateProject}
-            />
-          )}
-
-          {activePage === 'maker' && (
-            <MakerDashboardPage
-              language={language}
-              user={user}
-              projects={allProjects}
-              likedIds={guestLikes}
-              bookmarkedIds={effectiveBookmarks}
-              reports={userReports}
-              claims={userClaims}
-              recentActivities={localActivities}
-              syncingProjectId={syncingProjectId}
-              onSignIn={() => void handleSignIn()}
-              onNavigate={setActivePage}
-              onOpenDetail={(p) => setSelectedSlug(p.slug)}
-              onToggleLike={(p) => void handleToggleLike(p)}
-              onToggleBookmark={(p) => void handleToggleBookmark(p)}
-              onSyncProject={(p) => void handleSyncSingleGithub(p)}
-              onDeleteProject={deleteFirestoreProject}
-            />
-          )}
-        </main>
-
-        <footer className="border-t border-slate-200 bg-white py-8 dark:border-slate-800 dark:bg-slate-950">
-          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-3 px-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:px-6 dark:text-slate-400">
-            <p>{footerCopy.tagline}</p>
-            <p>{footerCopy.transparencyNote}</p>
-          </div>
-        </footer>
-
-        <ProjectDetailModal
-          project={selectedProject}
-          allProjects={allProjects}
-          language={language}
-          user={user}
-          isLiked={selectedProject ? guestLikes.has(selectedProject.id) : false}
-          isBookmarked={selectedProject ? effectiveBookmarks.has(selectedProject.id) : false}
-          isSyncing={Boolean(selectedProject && syncingProjectId === selectedProject.id)}
-          localActivities={localActivities}
-          userReports={userReports}
-          userClaims={userClaims}
-          onClose={() => setSelectedSlug(null)}
-          onSelectProject={(p) => setSelectedSlug(p.slug)}
-          onToggleLike={(p) => void handleToggleLike(p)}
-          onToggleBookmark={(p) => void handleToggleBookmark(p)}
-          onSyncSingleGithub={(p) => void handleSyncSingleGithub(p)}
-          onSubmitReport={async (proj, reason, details) => {
-            if (!user) throw new Error('Sign in required');
-            await submitReportToFirestore(user, proj, reason, details);
-            setLocalActivities(
-              recordLocalProjectActivity({
-                id: `local_report_${proj.id}_${Date.now()}`,
-                projectId: proj.id,
-                projectSlug: proj.slug,
-                actorUid: user.uid,
-                actorName: user.displayName || '',
-                actorHandle: '',
-                type: 'report',
-                reportReason: reason,
-                createdAtIso: new Date().toISOString(),
-              })
-            );
-          }}
-          onSubmitClaim={async (proj, method, proof) => {
-            if (!user) throw new Error('Sign in required');
-            await submitOwnershipClaimToFirestore(user, proj, method, proof);
-          }}
-          onSignIn={() => void handleSignIn()}
-          onSelectTag={(tag) => {
-            setSelectedSlug(null);
-            setFilters({ ...DEFAULT_SEARCH_FILTERS, tags: [tag], page: 1 });
-            setActivePage('discover');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
-      </div>
+          <EditProjectModal
+            project={editingPermission.allowed ? editingProject : null}
+            language={language}
+            permissionReason={editingPermission.reason}
+            onClose={() => {
+              playUiSound('close');
+              setEditingProjectId(null);
+            }}
+            onSaveProject={handleSaveProjectUpdate}
+          />
+        </div>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }
