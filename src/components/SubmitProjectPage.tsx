@@ -10,6 +10,7 @@ import type {
   DevelopmentPlatform,
   GitHubRepoMetadata,
   HostingProvider,
+  MobileTargetPlatform,
   PricingModel,
 } from '../types/vibeatlas';
 import {
@@ -27,6 +28,7 @@ import {
   resolveCanonicalCategoryTag,
   toggleCommaSeparatedTag,
 } from '../lib/projectTags';
+import { fetchGitHubRepoMetadata } from '../lib/githubApiClient';
 import {
   generateSlug,
   isSafeHttpUrl,
@@ -46,6 +48,12 @@ import {
   type SubmitProjectDraftFields,
 } from '../lib/submitDraftStorage';
 import { buildProjectShareUrl, buildPromotionCopy } from '../lib/submissionPromotion';
+import {
+  normalizeMobileConfig,
+  normalizeMobilePlatforms,
+} from '../lib/mobileAppDemo';
+import { MobileAppFormSection } from './MobileAppFormSection';
+import { MobileDeviceDemoViewer } from './MobileDeviceDemoViewer';
 import { PastelCategoryIcon } from './PastelCategoryIcon';
 
 interface SubmitProjectPageProps {
@@ -81,6 +89,12 @@ const FIELD_ELEMENT_IDS: Record<SubmitValidationField, string> = {
   githubUrl: 'sub-gh',
   makerName: 'sub-maker',
   makerHandle: 'sub-handle',
+  mobileDemoUrl: 'sub-mobile-demo-url',
+  iosAppStoreUrl: 'sub-ios-store-url',
+  androidPlayStoreUrl: 'sub-android-store-url',
+  mobilePackageUrl: 'sub-mobile-package-url',
+  bundleId: 'sub-bundle-id',
+  minOsVersion: 'sub-min-os',
 };
 
 const FIELD_KEY_TO_ERROR_KEY: Partial<Record<keyof SubmitProjectDraftFields, SubmitValidationField>> =
@@ -99,6 +113,12 @@ const FIELD_KEY_TO_ERROR_KEY: Partial<Record<keyof SubmitProjectDraftFields, Sub
     githubUrl: 'githubUrl',
     makerName: 'makerName',
     makerHandle: 'makerHandle',
+    mobileDemoUrl: 'mobileDemoUrl',
+    iosAppStoreUrl: 'iosAppStoreUrl',
+    androidPlayStoreUrl: 'androidPlayStoreUrl',
+    mobilePackageUrl: 'mobilePackageUrl',
+    mobileBundleId: 'bundleId',
+    mobileMinOsVersion: 'minOsVersion',
   };
 
 export function SubmitProjectPage({
@@ -133,7 +153,20 @@ export function SubmitProjectPage({
 
   const updateField = useCallback(
     <K extends keyof SubmitProjectDraftFields>(key: K, value: SubmitProjectDraftFields[K]) => {
-      setFormState((prev) => ({ ...prev, [key]: value }));
+      setFormState((prev) => {
+        const next: SubmitProjectDraftFields = { ...prev, [key]: value };
+        if (key === 'contentType' && value === 'mobile_app') {
+          next.enableMobileDemo = true;
+          const existingTags = parseCommaSeparatedTags(prev.categoriesRaw);
+          const hasMobileCategory = existingTags.some(
+            (t) => (resolveCanonicalCategoryTag(t) ?? t).toLowerCase() === 'mobile app'
+          );
+          if (!hasMobileCategory && existingTags.length < 6) {
+            next.categoriesRaw = [...existingTags, 'Mobile App'].join(', ');
+          }
+        }
+        return next;
+      });
       const errorKey = FIELD_KEY_TO_ERROR_KEY[key];
       if (errorKey) {
         setFieldErrors((prev) => {
@@ -205,13 +238,7 @@ export function SubmitProjectPage({
 
     setFetchingGh(true);
     try {
-      const resp = await fetch(`/api/github/repo?repo=${encodeURIComponent(slug)}`);
-      const data = await resp.json();
-      if (!resp.ok || !data.repo) {
-        setGhFeedback(data.error || 'GitHub 조회에 실패했습니다.');
-        return;
-      }
-      const repo = data.repo as GitHubRepoMetadata;
+      const repo = await fetchGitHubRepoMetadata(slug);
       setGhMeta(repo);
       setFormState((prev) => ({
         ...prev,
@@ -262,6 +289,22 @@ export function SubmitProjectPage({
       .filter(Boolean);
     const slug = `${generateSlug(formState.name)}-${Date.now().toString(36).slice(-4)}`;
 
+    const shouldIncludeMobile =
+      formState.contentType === 'mobile_app' || formState.enableMobileDemo;
+    const mobileConfigInput = shouldIncludeMobile
+      ? {
+          platforms: normalizeMobilePlatforms(formState.mobilePlatforms),
+          mobileDemoUrl: formState.mobileDemoUrl,
+          iosAppStoreUrl: formState.iosAppStoreUrl,
+          androidPlayStoreUrl: formState.androidPlayStoreUrl,
+          mobilePackageUrl: formState.mobilePackageUrl,
+          bundleId: formState.mobileBundleId,
+          minOsVersion: formState.mobileMinOsVersion,
+          devicePreset: formState.mobileDevicePreset,
+          orientation: formState.mobileOrientation,
+        }
+      : undefined;
+
     const candidatePayload = {
       slug,
       name: formState.name,
@@ -284,6 +327,7 @@ export function SubmitProjectPage({
       githubUrl: formState.githubUrl,
       makerName: formState.makerName,
       makerHandle: formState.makerHandle,
+      ...(mobileConfigInput ? { mobileConfig: mobileConfigInput } : {}),
     };
 
     const rawSchemaCheck = submitProjectFormSchema.safeParse(candidatePayload);
@@ -319,6 +363,7 @@ export function SubmitProjectPage({
 
     const validData = validation.data;
     const ghSlug = parseGitHubRepoSlug(validData.githubUrl) || '';
+    const normalizedMobileConfig = normalizeMobileConfig(validData.mobileConfig);
 
     setSubmitting(true);
     try {
@@ -352,6 +397,7 @@ export function SubmitProjectPage({
         githubForks: ghMeta ? ghMeta.forks : 0,
         lastSyncedAt: ghMeta ? ghMeta.fetchedAt : '',
         isCuratedSeed: false,
+        ...(normalizedMobileConfig ? { mobileConfig: normalizedMobileConfig } : {}),
       });
       clearDraftAfterSubmission();
       setSubmitSuccess(copy.submitSuccess);
@@ -834,6 +880,31 @@ export function SubmitProjectPage({
           </div>
         </div>
 
+        <MobileAppFormSection
+          language={language}
+          idPrefix="sub"
+          values={{
+            contentType: formState.contentType,
+            enableMobileDemo: formState.enableMobileDemo,
+            mobilePlatforms: formState.mobilePlatforms,
+            mobileDemoUrl: formState.mobileDemoUrl,
+            iosAppStoreUrl: formState.iosAppStoreUrl,
+            androidPlayStoreUrl: formState.androidPlayStoreUrl,
+            mobilePackageUrl: formState.mobilePackageUrl,
+            mobileBundleId: formState.mobileBundleId,
+            mobileMinOsVersion: formState.mobileMinOsVersion,
+            mobileDevicePreset: formState.mobileDevicePreset,
+            mobileOrientation: formState.mobileOrientation,
+            techStackRaw: formState.techStackRaw,
+          }}
+          fieldErrors={fieldErrors}
+          onToggleEnable={(enabled) => updateField('enableMobileDemo', enabled)}
+          onChangePlatforms={(platforms: MobileTargetPlatform[]) =>
+            updateField('mobilePlatforms', platforms)
+          }
+          onChangeField={(field, val) => updateField(field, val)}
+        />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="sub-maker" className="block text-xs font-medium text-slate-700 dark:text-slate-300">
@@ -892,70 +963,107 @@ export function SubmitProjectPage({
           </div>
         )}
 
-        <div
-          data-testid="submit-promo-preview"
-          className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/70"
-        >
-          <div className="flex items-center gap-2">
-            <Megaphone className="h-4 w-4 text-blue-700 dark:text-blue-400" aria-hidden="true" />
-            <h3 className="text-xs font-bold text-slate-900 dark:text-white">
-              {copy.promoPreviewTitle}
-            </h3>
-          </div>
-          <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
-            {copy.promoPreviewSubtitle}
-          </p>
-          <pre className="mt-2.5 whitespace-pre-wrap rounded-md border border-slate-200 bg-white p-3 font-sans text-xs leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
-            {(() => {
-              const previewSlug = generateSlug(formState.name || 'your-project') || 'your-project';
-              const previewUrl = buildProjectShareUrl(
-                typeof window !== 'undefined' ? window.location.origin : 'https://vibeatlas.app',
-                previewSlug
-              );
-              return buildPromotionCopy(
-                {
-                  id: 'preview',
-                  slug: previewSlug,
-                  name: formState.name.trim() || copy.promoPreviewUntitled,
-                  tagline: formState.tagline.trim() || copy.promoPreviewTaglineFallback,
-                  taglineKo: formState.taglineKo.trim() || formState.tagline.trim() || copy.promoPreviewTaglineFallback,
-                  description: formState.description.trim() || copy.promoPreviewTaglineFallback,
-                  descriptionKo: '',
-                  contentType: formState.contentType,
-                  categories: parseCommaSeparatedTags(formState.categoriesRaw),
-                  techStack: parseCommaSeparatedTags(formState.techStackRaw),
-                  developmentPlatform: formState.platform,
-                  hostingProvider: formState.hosting,
-                  backendTech: formState.backend,
-                  country: formState.country || 'KR',
-                  language: formState.projLang,
-                  license: formState.license || 'MIT',
-                  pricingModel: formState.pricingModel,
-                  verificationStatus: 'unverified',
-                  provenanceSource: 'maker_submitted',
-                  liveDemoUrl: formState.liveDemoUrl.trim(),
-                  websiteUrl: formState.websiteUrl.trim(),
-                  githubRepo: '',
-                  githubUrl: formState.githubUrl.trim(),
-                  thumbnailUrl: '',
-                  makerName: formState.makerName.trim() || 'Maker',
-                  makerHandle: formState.makerHandle.trim(),
-                  ownerUid: 'preview',
-                  githubStars: 0,
-                  githubForks: 0,
-                  likesCount: 0,
-                  bookmarksCount: 0,
-                  lastSyncedAt: '',
-                  createdAtIso: new Date().toISOString(),
-                  updatedAtIso: new Date().toISOString(),
-                },
-                language,
-                previewUrl,
-                'community'
-              );
-            })()}
-          </pre>
-        </div>
+        {(() => {
+          const previewSlug = generateSlug(formState.name || 'your-project') || 'your-project';
+          const previewUrl = buildProjectShareUrl(
+            typeof window !== 'undefined' ? window.location.origin : 'https://vibeatlas.app',
+            previewSlug
+          );
+          const showMobilePreview =
+            formState.contentType === 'mobile_app' || formState.enableMobileDemo;
+          const previewMobileConfig = showMobilePreview
+            ? normalizeMobileConfig({
+                platforms: formState.mobilePlatforms,
+                mobileDemoUrl: formState.mobileDemoUrl,
+                iosAppStoreUrl: formState.iosAppStoreUrl,
+                androidPlayStoreUrl: formState.androidPlayStoreUrl,
+                mobilePackageUrl: formState.mobilePackageUrl,
+                bundleId: formState.mobileBundleId,
+                minOsVersion: formState.mobileMinOsVersion,
+                devicePreset: formState.mobileDevicePreset,
+                orientation: formState.mobileOrientation,
+              }) ?? {
+                platforms: formState.mobilePlatforms,
+                mobileDemoUrl: formState.mobileDemoUrl.trim(),
+                iosAppStoreUrl: formState.iosAppStoreUrl.trim(),
+                androidPlayStoreUrl: formState.androidPlayStoreUrl.trim(),
+                mobilePackageUrl: formState.mobilePackageUrl.trim(),
+                bundleId: formState.mobileBundleId.trim(),
+                minOsVersion: formState.mobileMinOsVersion.trim(),
+                devicePreset: formState.mobileDevicePreset,
+                orientation: formState.mobileOrientation,
+              }
+            : undefined;
+
+          const previewProject: CatalogProject = {
+            id: 'preview',
+            slug: previewSlug,
+            name: formState.name.trim() || copy.promoPreviewUntitled,
+            tagline: formState.tagline.trim() || copy.promoPreviewTaglineFallback,
+            taglineKo:
+              formState.taglineKo.trim() ||
+              formState.tagline.trim() ||
+              copy.promoPreviewTaglineFallback,
+            description: formState.description.trim() || copy.promoPreviewTaglineFallback,
+            descriptionKo: formState.descriptionKo.trim(),
+            contentType: formState.contentType,
+            categories: parseCommaSeparatedTags(formState.categoriesRaw),
+            techStack: parseCommaSeparatedTags(formState.techStackRaw),
+            developmentPlatform: formState.platform,
+            hostingProvider: formState.hosting,
+            backendTech: formState.backend,
+            country: formState.country || 'KR',
+            language: formState.projLang,
+            license: formState.license || 'MIT',
+            pricingModel: formState.pricingModel,
+            verificationStatus: 'unverified',
+            provenanceSource: 'maker_submitted',
+            liveDemoUrl: formState.liveDemoUrl.trim(),
+            websiteUrl: formState.websiteUrl.trim(),
+            githubRepo: '',
+            githubUrl: formState.githubUrl.trim(),
+            thumbnailUrl: '',
+            makerName: formState.makerName.trim() || 'Maker',
+            makerHandle: formState.makerHandle.trim(),
+            ownerUid: 'preview',
+            githubStars: 0,
+            githubForks: 0,
+            likesCount: 0,
+            bookmarksCount: 0,
+            lastSyncedAt: '',
+            createdAtIso: new Date().toISOString(),
+            updatedAtIso: new Date().toISOString(),
+            ...(previewMobileConfig ? { mobileConfig: previewMobileConfig } : {}),
+          };
+
+          return (
+            <>
+              {showMobilePreview && (
+                <div data-testid="submit-mobile-live-preview">
+                  <MobileDeviceDemoViewer project={previewProject} language={language} compact />
+                </div>
+              )}
+
+              <div
+                data-testid="submit-promo-preview"
+                className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/70"
+              >
+                <div className="flex items-center gap-2">
+                  <Megaphone className="h-4 w-4 text-blue-700 dark:text-blue-400" aria-hidden="true" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                    {copy.promoPreviewTitle}
+                  </h3>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  {copy.promoPreviewSubtitle}
+                </p>
+                <pre className="mt-2.5 whitespace-pre-wrap rounded-md border border-slate-200 bg-white p-3 font-sans text-xs leading-relaxed text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+                  {buildPromotionCopy(previewProject, language, previewUrl, 'community')}
+                </pre>
+              </div>
+            </>
+          );
+        })()}
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4 dark:border-slate-800">
           {!user ? (

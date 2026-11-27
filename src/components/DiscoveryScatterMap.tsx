@@ -28,6 +28,7 @@ import {
   type ScatterQuadrant,
   type ScatterScope,
 } from '../lib/discoveryScatter';
+import { fetchAiTrendingRepos } from '../lib/githubApiClient';
 import { resolveMakerVerification } from '../lib/makerVerification';
 import { MakerVerificationBadge } from './MakerVerificationBadge';
 
@@ -39,10 +40,6 @@ interface DiscoveryScatterMapProps {
   snapshotRevision?: number;
   onOpenDetail: (project: CatalogProject) => void;
   onResetFilters: () => void;
-}
-
-interface AiTrendingApiResponse {
-  items?: GitHubAiTrendingRepo[];
 }
 
 const SVG_WIDTH = 620;
@@ -96,11 +93,10 @@ export function DiscoveryScatterMap({
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
     const load = async () => {
       try {
-        const resp = await fetch('/api/github/ai-trending');
-        if (!resp.ok) return;
-        const data = (await resp.json()) as AiTrendingApiResponse;
+        const data = await fetchAiTrendingRepos({ signal: controller.signal });
         if (!cancelled && Array.isArray(data.items)) {
           setLiveRepos(data.items);
         }
@@ -111,6 +107,7 @@ export function DiscoveryScatterMap({
     void load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, []);
 

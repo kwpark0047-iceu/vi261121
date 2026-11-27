@@ -6,9 +6,18 @@ import type {
   DevelopmentPlatform,
   GitHubRepoMetadata,
   HostingProvider,
+  MobileAppConfig,
+  MobileDemoOrientation,
+  MobileDevicePreset,
+  MobileTargetPlatform,
   PricingModel,
   ProvenanceSource,
 } from '../types/vibeatlas';
+import {
+  hasMobileDemoSupport,
+  normalizeMobileConfig,
+  normalizeMobilePlatforms,
+} from './mobileAppDemo';
 import {
   isSafeHttpUrl,
   parseGitHubRepoSlug,
@@ -59,6 +68,16 @@ export interface EditProjectDraftFields {
   thumbnailUrl: string;
   makerName: string;
   makerHandle: string;
+  enableMobileDemo: boolean;
+  mobilePlatforms: MobileTargetPlatform[];
+  mobileDemoUrl: string;
+  iosAppStoreUrl: string;
+  androidPlayStoreUrl: string;
+  mobilePackageUrl: string;
+  mobileBundleId: string;
+  mobileMinOsVersion: string;
+  mobileDevicePreset: MobileDevicePreset;
+  mobileOrientation: MobileDemoOrientation;
 }
 
 export type EditValidationField = SubmitValidationField | 'thumbnailUrl';
@@ -90,6 +109,7 @@ export interface FirestoreProjectUpdatePayload {
   githubForks: number;
   lastSyncedAt: string;
   provenanceSource: ProvenanceSource;
+  mobileConfig?: MobileAppConfig;
 }
 
 export const THUMBNAIL_URL_ERROR_COPY: Record<AppLanguage, string> = {
@@ -137,6 +157,8 @@ export function getOwnedEditableProjects(
 }
 
 export function buildEditDraftFromProject(project: CatalogProject): EditProjectDraftFields {
+  const cfg = project.mobileConfig;
+  const mobileEnabled = hasMobileDemoSupport(project);
   return {
     githubInput: project.githubRepo || project.githubUrl || '',
     name: project.name || '',
@@ -160,6 +182,21 @@ export function buildEditDraftFromProject(project: CatalogProject): EditProjectD
     thumbnailUrl: project.thumbnailUrl || '',
     makerName: project.makerName || '',
     makerHandle: project.makerHandle || '',
+    enableMobileDemo: mobileEnabled,
+    mobilePlatforms:
+      cfg && cfg.platforms.length > 0
+        ? cfg.platforms
+        : project.contentType === 'mobile_app'
+          ? ['ios', 'android']
+          : ['ios', 'android'],
+    mobileDemoUrl: cfg?.mobileDemoUrl || '',
+    iosAppStoreUrl: cfg?.iosAppStoreUrl || '',
+    androidPlayStoreUrl: cfg?.androidPlayStoreUrl || '',
+    mobilePackageUrl: cfg?.mobilePackageUrl || '',
+    mobileBundleId: cfg?.bundleId || '',
+    mobileMinOsVersion: cfg?.minOsVersion || '',
+    mobileDevicePreset: cfg?.devicePreset || 'iphone_16',
+    mobileOrientation: cfg?.orientation || 'portrait',
   };
 }
 
@@ -176,6 +213,41 @@ function listsEqual(a: ReadonlyArray<string>, b: ReadonlyArray<string>): boolean
     if (a[i]?.trim() !== b[i]?.trim()) return false;
   }
   return true;
+}
+
+function resolveDraftMobileConfig(draft: EditProjectDraftFields): MobileAppConfig | undefined {
+  const shouldInclude = draft.contentType === 'mobile_app' || draft.enableMobileDemo;
+  if (!shouldInclude) return undefined;
+  return normalizeMobileConfig({
+    platforms: draft.mobilePlatforms,
+    mobileDemoUrl: draft.mobileDemoUrl,
+    iosAppStoreUrl: draft.iosAppStoreUrl,
+    androidPlayStoreUrl: draft.androidPlayStoreUrl,
+    mobilePackageUrl: draft.mobilePackageUrl,
+    bundleId: draft.mobileBundleId,
+    minOsVersion: draft.mobileMinOsVersion,
+    devicePreset: draft.mobileDevicePreset,
+    orientation: draft.mobileOrientation,
+  });
+}
+
+function mobileConfigsEqual(
+  a: MobileAppConfig | undefined,
+  b: MobileAppConfig | undefined
+): boolean {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return (
+    listsEqual(a.platforms, b.platforms) &&
+    a.mobileDemoUrl === b.mobileDemoUrl &&
+    a.iosAppStoreUrl === b.iosAppStoreUrl &&
+    a.androidPlayStoreUrl === b.androidPlayStoreUrl &&
+    a.mobilePackageUrl === b.mobilePackageUrl &&
+    a.bundleId === b.bundleId &&
+    a.minOsVersion === b.minOsVersion &&
+    a.devicePreset === b.devicePreset &&
+    a.orientation === b.orientation
+  );
 }
 
 export function getChangedProjectFields(
@@ -212,6 +284,12 @@ export function getChangedProjectFields(
     changed.push('thumbnailUrl');
   if (draft.makerName.trim() !== (original.makerName || '').trim()) changed.push('makerName');
   if (draft.makerHandle.trim() !== (original.makerHandle || '').trim()) changed.push('makerHandle');
+
+  const origMobile = normalizeMobileConfig(original.mobileConfig);
+  const nextMobile = resolveDraftMobileConfig(draft);
+  if (!mobileConfigsEqual(origMobile, nextMobile)) {
+    changed.push('mobileConfig');
+  }
 
   if (syncedGithubMeta && !changed.includes('githubUrl')) {
     const starsChanged = syncedGithubMeta.stars !== original.githubStars;
@@ -252,6 +330,21 @@ export function validateEditProjectDraft(
 ): EditDraftValidationResult {
   const categories = parseList(draft.categoriesRaw);
   const techStack = parseList(draft.techStackRaw);
+  const shouldIncludeMobile = draft.contentType === 'mobile_app' || draft.enableMobileDemo;
+  const mobileConfigInput = shouldIncludeMobile
+    ? {
+        platforms: normalizeMobilePlatforms(draft.mobilePlatforms),
+        mobileDemoUrl: draft.mobileDemoUrl,
+        iosAppStoreUrl: draft.iosAppStoreUrl,
+        androidPlayStoreUrl: draft.androidPlayStoreUrl,
+        mobilePackageUrl: draft.mobilePackageUrl,
+        bundleId: draft.mobileBundleId,
+        minOsVersion: draft.mobileMinOsVersion,
+        devicePreset: draft.mobileDevicePreset,
+        orientation: draft.mobileOrientation,
+      }
+    : undefined;
+
   const baseValidation = validateProjectSubmissionInput(
     {
       slug: original.slug,
@@ -275,6 +368,7 @@ export function validateEditProjectDraft(
       githubUrl: draft.githubUrl,
       makerName: draft.makerName,
       makerHandle: draft.makerHandle,
+      ...(mobileConfigInput ? { mobileConfig: mobileConfigInput } : {}),
     },
     language
   );
@@ -354,6 +448,8 @@ export function buildFirestoreProjectUpdatePayload(
     lastSyncedAt = '';
   }
 
+  const normalizedMobileConfig = normalizeMobileConfig(validated.mobileConfig);
+
   return {
     name: validated.name.slice(0, 120),
     tagline: validated.tagline.slice(0, 220),
@@ -381,5 +477,6 @@ export function buildFirestoreProjectUpdatePayload(
     githubForks: Math.min(10_000_000, githubForks),
     lastSyncedAt,
     provenanceSource,
+    ...(normalizedMobileConfig ? { mobileConfig: normalizedMobileConfig } : {}),
   };
 }

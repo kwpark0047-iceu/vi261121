@@ -81,6 +81,16 @@ export const DISCOVER_TYPE_PILLS: ReadonlyArray<DiscoverTypeFilterOption> = [
     },
   },
   {
+    id: 'mobile_app',
+    tone: 'aqua',
+    labels: {
+      ko: '모바일 앱',
+      en: 'Mobile App',
+      zh: '移动应用',
+      ja: 'モバイルアプリ',
+    },
+  },
+  {
     id: 'ai_skill',
     tone: 'butter',
     labels: {
@@ -149,6 +159,7 @@ export function computeDiscoverTypeCounts(
     open_source: 0,
     ai_tool: 0,
     web_app: 0,
+    mobile_app: 0,
     ai_skill: 0,
     template: 0,
   };

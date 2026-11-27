@@ -7,6 +7,7 @@ import {
   GitCompareArrows,
   GitFork,
   Heart,
+  Smartphone,
   Star,
 } from 'lucide-react';
 import type {
@@ -30,6 +31,11 @@ import {
 } from '../lib/catalogEngine';
 import { resolveMakerVerification } from '../lib/makerVerification';
 import { getProjectTags, resolveCanonicalCategoryTag } from '../lib/projectTags';
+import {
+  formatMobilePlatformsSummary,
+  hasMobileDemoSupport,
+  resolvePrimaryMobilePreviewUrl,
+} from '../lib/mobileAppDemo';
 import { sanitizeExternalUrl } from '../lib/validation';
 import {
   resolveProjectHighlightBadges,
@@ -121,8 +127,14 @@ export function ProjectCard({
     ? project.githubStars
     : sparkline?.latestStars ?? 0;
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
-  const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
+  const safeDemo =
+    sanitizeExternalUrl(project.liveDemoUrl) || resolvePrimaryMobilePreviewUrl(project);
   const safeGithub = sanitizeExternalUrl(project.githubUrl);
+  const hasMobileSupport = hasMobileDemoSupport(project);
+  const mobilePlatformsLabel = formatMobilePlatformsSummary(
+    project.mobileConfig?.platforms ?? [],
+    language
+  );
 
   return (
     <motion.article
@@ -252,6 +264,17 @@ export function ProjectCard({
             >
               {missing.includes('license') ? copy.missingLicense : project.license}
             </span>
+            {hasMobileSupport && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1 font-medium text-cyan-700 dark:text-cyan-400">
+                  <Smartphone className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <span>
+                    {mobilePlatformsLabel || UI_STRINGS[language].mobileDemo.cardBadgeLabel}
+                  </span>
+                </span>
+              </>
+            )}
           </div>
 
           {projectTags.length > 0 && (

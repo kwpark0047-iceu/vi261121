@@ -18,6 +18,10 @@ import {
   chunkTranslationItems,
   needsDescriptionTranslation,
 } from '../lib/repoDescriptionTranslator';
+import {
+  fetchAiTrendingRepos,
+  translateRepoDescriptionsSafely,
+} from '../lib/githubApiClient';
 import { playUiSound } from '../lib/soundEffects';
 import { selectTrending24hProjects } from '../lib/trending24h';
 import { sanitizeExternalUrl } from '../lib/validation';
@@ -29,13 +33,6 @@ interface HomeTrending24hSectionProps {
   snapshotRevision?: number;
   onOpenDetail: (project: CatalogProject) => void;
   onNavigate: (page: ActivePage) => void;
-}
-
-interface AiTrendingApiResponse {
-  fetchedAt?: string;
-  staleCache?: boolean;
-  items?: GitHubAiTrendingRepo[];
-  error?: string;
 }
 
 export function HomeTrending24hSection({
@@ -59,14 +56,7 @@ export function HomeTrending24hSection({
     setIsLoading(true);
     setError(null);
     try {
-      const url = forceRefresh
-        ? '/api/github/ai-trending?refresh=1'
-        : '/api/github/ai-trending';
-      const resp = await fetch(url);
-      const data = (await resp.json()) as AiTrendingApiResponse;
-      if (!resp.ok) {
-        throw new Error(data.error || `HTTP ${resp.status}`);
-      }
+      const data = await fetchAiTrendingRepos({ forceRefresh });
       setLiveRepos(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : homeCopy.trending24hErrorTitle);
@@ -112,17 +102,15 @@ export function HomeTrending24hSection({
       for (const batch of batches) {
         if (cancelled) break;
         try {
-          const resp = await fetch('/api/github/translate-descriptions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ targetLanguage: language, items: batch }),
+          const outcome = await translateRepoDescriptionsSafely({
+            targetLanguage: language,
+            items: batch,
             signal: controller.signal,
           });
-          if (!resp.ok) break;
-          const data = (await resp.json()) as { translations?: Record<string, string> };
-          if (!cancelled && data.translations) {
+          if (!outcome.ok) break;
+          if (!cancelled && outcome.translations) {
             const updates: Array<[number, string]> = [];
-            for (const [k, v] of Object.entries(data.translations)) {
+            for (const [k, v] of Object.entries(outcome.translations)) {
               const idNum = Number(k);
               if (Number.isFinite(idNum) && typeof v === 'string' && v.trim()) {
                 updates.push([idNum, v.trim()]);

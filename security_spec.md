@@ -8,6 +8,7 @@
 5. Reports and ownership claims always start in `'open'` / `'pending'` status and can never be escalated or modified to `'approved'`/`'resolved'` by non-admin callers.
 6. Every document ID matches `^[a-zA-Z0-9_\-]+$` (max 128 chars), every string has explicit `.size()` bounds, and every array (`categories`, `techStack`) has explicit upper-bound size limits and first-element type validation.
 7. `/projectActivities/{activityId}` stores strictly PII-free community activity (`like`, `bookmark`, `reportReason` only — never email or private report details), enforces `actorUid == request.auth.uid` and server timestamps on creation, forbids updates, and prevents non-admins from deleting `'report'` records.
+8. Optional `mobileConfig` maps on `/projects/{projectId}` strictly enforce exact key allowlists (`platforms`, `mobileDemoUrl`, `iosAppStoreUrl`, `androidPlayStoreUrl`, `mobilePackageUrl`, `bundleId`, `minOsVersion`, `devicePreset`, `orientation`), array size `<= 3` with every element validated against `['ios', 'android', 'pwa']`, bounded strings, and `https?://` URL patterns.
 
 ## 2. Dirty Dozen Adversarial Payloads (Must All Return PERMISSION_DENIED)
 1. **Identity Spoofing on Project Create**: Creating `/projects/p1` with `ownerUid: "someone-else"` while signed in as `userA`.
@@ -23,3 +24,4 @@
 11. **Terminal State / Claim Auto-Approval**: Creating or updating `/ownershipClaims/c1` with `status: "approved"` as claimant.
 12. **Blanket List Query Scraping**: Running `list` on `/reports` or `/ownershipClaims` as a regular user without scoping to `reporterUid == request.auth.uid` / `claimantUid == request.auth.uid`.
 13. **ProjectActivity PII / Report Deletion Tampering**: Creating a `/projectActivities` entry with `actorUid` set to another user, non-empty `reportReason` on a `'like'` event, or deleting a `'report'` activity entry as a non-admin.
+14. **MobileConfig Injection / Invalid URL / Unbounded Platform Array**: Creating or updating `/projects/p6` with `mobileConfig.mobileDemoUrl: "javascript:alert(1)"`, extra ghost keys inside `mobileConfig`, or `platforms` containing an invalid value or >3 items.

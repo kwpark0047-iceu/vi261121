@@ -96,6 +96,7 @@ export const projectSubmissionSchema = z.object({
   descriptionKo: z.string().trim().max(4000).default(''),
   contentType: z.enum([
     'web_app',
+    'mobile_app',
     'ai_tool',
     'mcp_server',
     'ai_skill',
@@ -149,6 +150,19 @@ export const projectSubmissionSchema = z.object({
   githubUrl: z.string().trim().max(500).refine(isSafeHttpUrl, 'Invalid HTTP/HTTPS URL'),
   makerName: z.string().trim().min(1).max(100),
   makerHandle: z.string().trim().max(80).default(''),
+  mobileConfig: z
+    .object({
+      platforms: z.array(z.enum(['ios', 'android', 'pwa'])).max(3).default([]),
+      mobileDemoUrl: z.string().trim().max(500).refine(isSafeHttpUrl, 'Invalid HTTP/HTTPS URL').default(''),
+      iosAppStoreUrl: z.string().trim().max(500).refine(isSafeHttpUrl, 'Invalid HTTP/HTTPS URL').default(''),
+      androidPlayStoreUrl: z.string().trim().max(500).refine(isSafeHttpUrl, 'Invalid HTTP/HTTPS URL').default(''),
+      mobilePackageUrl: z.string().trim().max(500).refine(isSafeHttpUrl, 'Invalid HTTP/HTTPS URL').default(''),
+      bundleId: z.string().trim().max(120).default(''),
+      minOsVersion: z.string().trim().max(64).default(''),
+      devicePreset: z.enum(['iphone_16', 'pixel_9']).default('iphone_16'),
+      orientation: z.enum(['portrait', 'landscape']).default('portrait'),
+    })
+    .optional(),
 });
 
 export const reportSubmissionSchema = z.object({
@@ -184,7 +198,13 @@ export type SubmitValidationField =
   | 'websiteUrl'
   | 'githubUrl'
   | 'makerName'
-  | 'makerHandle';
+  | 'makerHandle'
+  | 'mobileDemoUrl'
+  | 'iosAppStoreUrl'
+  | 'androidPlayStoreUrl'
+  | 'mobilePackageUrl'
+  | 'bundleId'
+  | 'minOsVersion';
 
 const FIELD_ERROR_COPY: Record<AppLanguage, Record<SubmitValidationField, string>> = {
   ko: {
@@ -202,6 +222,12 @@ const FIELD_ERROR_COPY: Record<AppLanguage, Record<SubmitValidationField, string
     githubUrl: '올바른 http:// 또는 https:// GitHub URL 형식을 입력하세요.',
     makerName: '메이커 또는 팀 이름을 입력하세요.',
     makerHandle: '메이커 핸들은 80자 이하로 입력하세요.',
+    mobileDemoUrl: '올바른 http:// 또는 https:// 모바일 데모 URL을 입력하세요.',
+    iosAppStoreUrl: '올바른 http:// 또는 https:// App Store / TestFlight URL을 입력하세요.',
+    androidPlayStoreUrl: '올바른 http:// 또는 https:// Google Play URL을 입력하세요.',
+    mobilePackageUrl: '올바른 http:// 또는 https:// 빌드/APK/Expo URL을 입력하세요.',
+    bundleId: '번들/패키지 ID는 120자 이하로 입력하세요.',
+    minOsVersion: '최소 OS 버전은 64자 이하로 입력하세요.',
   },
   en: {
     name: 'Project name must be between 2 and 120 characters.',
@@ -218,6 +244,12 @@ const FIELD_ERROR_COPY: Record<AppLanguage, Record<SubmitValidationField, string
     githubUrl: 'Enter a valid http:// or https:// GitHub URL.',
     makerName: 'Maker or team name is required.',
     makerHandle: 'Maker handle must be 80 characters or fewer.',
+    mobileDemoUrl: 'Enter a valid http:// or https:// Mobile Demo URL.',
+    iosAppStoreUrl: 'Enter a valid http:// or https:// App Store / TestFlight URL.',
+    androidPlayStoreUrl: 'Enter a valid http:// or https:// Google Play URL.',
+    mobilePackageUrl: 'Enter a valid http:// or https:// APK / Expo / Build URL.',
+    bundleId: 'Bundle / Package ID must be 120 characters or fewer.',
+    minOsVersion: 'Minimum OS version must be 64 characters or fewer.',
   },
   zh: {
     name: '项目名称需为 2 至 120 个字符。',
@@ -234,6 +266,12 @@ const FIELD_ERROR_COPY: Record<AppLanguage, Record<SubmitValidationField, string
     githubUrl: '请输入有效的 http:// 或 https:// GitHub URL。',
     makerName: '请填写作者或团队名称。',
     makerHandle: '作者账号标识不能超过 80 个字符。',
+    mobileDemoUrl: '请输入有效的 http:// 或 https:// 移动演示 URL。',
+    iosAppStoreUrl: '请输入有效的 http:// 或 https:// App Store / TestFlight URL。',
+    androidPlayStoreUrl: '请输入有效的 http:// 或 https:// Google Play URL。',
+    mobilePackageUrl: '请输入有效的 http:// 或 https:// 安装包 / Expo URL。',
+    bundleId: 'Bundle / 包名 ID 不能超过 120 个字符。',
+    minOsVersion: '最低系统版本不能超过 64 个字符。',
   },
   ja: {
     name: 'プロジェクト名は2文字以上120文字以内で入力してください。',
@@ -250,6 +288,12 @@ const FIELD_ERROR_COPY: Record<AppLanguage, Record<SubmitValidationField, string
     githubUrl: '有効な http:// または https:// GitHub URLを入力してください。',
     makerName: 'メイカーまたはチーム名を入力してください。',
     makerHandle: 'メイカーハンドルは80文字以内で入力してください。',
+    mobileDemoUrl: '有効な http:// または https:// モバイルデモURLを入力してください。',
+    iosAppStoreUrl: '有効な http:// または https:// App Store / TestFlight URLを入力してください。',
+    androidPlayStoreUrl: '有効な http:// または https:// Google Play URLを入力してください。',
+    mobilePackageUrl: '有効な http:// または https:// ビルド / APK / Expo URLを入力してください。',
+    bundleId: 'Bundle / パッケージIDは120文字以内で入力してください。',
+    minOsVersion: '最小OSバージョンは64文字以内で入力してください。',
   },
 };
 
@@ -274,7 +318,10 @@ export function validateProjectSubmissionInput(
   const fieldErrors: Partial<Record<SubmitValidationField, string>> = {};
 
   for (const issue of parsed.error.issues) {
-    const key = issue.path[0];
+    const key =
+      issue.path[0] === 'mobileConfig' && typeof issue.path[1] === 'string'
+        ? issue.path[1]
+        : issue.path[0];
     if (typeof key === 'string' && key in messages) {
       const typedKey = key as SubmitValidationField;
       if (!fieldErrors[typedKey]) {

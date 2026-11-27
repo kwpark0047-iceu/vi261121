@@ -63,6 +63,7 @@ test('resolveActiveTypePill and computeDiscoverTypeCounts match seed catalog cou
     counts.open_source +
     counts.ai_tool +
     counts.web_app +
+    counts.mobile_app +
     counts.ai_skill +
     counts.template;
   assert.equal(sumByType, counts.all);

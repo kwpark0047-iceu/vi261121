@@ -16,6 +16,7 @@ import type {
 import { UI_STRINGS } from '../data/i18n';
 import { formatCompactCount } from '../lib/catalogEngine';
 import { findCatalogProjectByRepo } from '../lib/githubLeaderboard';
+import { fetchAiTrendingRepos } from '../lib/githubApiClient';
 import {
   buildTrendingBubblePack,
   extractTrendingLanguages,
@@ -27,13 +28,6 @@ interface GitHubTrendingBubbleChartProps {
   language: AppLanguage;
   catalogProjects: CatalogProject[];
   onOpenDetail: (project: CatalogProject) => void;
-}
-
-interface AiTrendingApiResponse {
-  fetchedAt?: string;
-  staleCache?: boolean;
-  items?: GitHubAiTrendingRepo[];
-  error?: string;
 }
 
 const BUBBLE_SVG_WIDTH = 470;
@@ -84,14 +78,7 @@ export function GitHubTrendingBubbleChart({
     setIsLoading(true);
     setError(null);
     try {
-      const url = forceRefresh
-        ? '/api/github/ai-trending?refresh=1'
-        : '/api/github/ai-trending';
-      const resp = await fetch(url);
-      const data = (await resp.json()) as AiTrendingApiResponse;
-      if (!resp.ok) {
-        throw new Error(data.error || `HTTP ${resp.status}`);
-      }
+      const data = await fetchAiTrendingRepos({ forceRefresh });
       const nextItems = Array.isArray(data.items) ? data.items : [];
       setItems(nextItems);
       setFetchedAt(data.fetchedAt || '');

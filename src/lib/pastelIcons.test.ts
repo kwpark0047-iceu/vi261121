@@ -12,6 +12,7 @@ describe('pastelIcons', () => {
   it('assigns distinct readable pastel tokens with light and dark classes for every content type', () => {
     const types: ContentType[] = [
       'web_app',
+      'mobile_app',
       'ai_tool',
       'mcp_server',
       'ai_skill',

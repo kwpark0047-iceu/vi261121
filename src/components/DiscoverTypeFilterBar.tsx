@@ -7,6 +7,7 @@ import {
   LayoutTemplate,
   Plug,
   RotateCcw,
+  Smartphone,
   Sparkles,
   Wrench,
 } from 'lucide-react';
@@ -45,6 +46,8 @@ function renderTypePillIcon(typeId: DiscoverTypeFilterId, className: string) {
       return <Wrench className={className} aria-hidden="true" />;
     case 'web_app':
       return <Globe className={className} aria-hidden="true" />;
+    case 'mobile_app':
+      return <Smartphone className={className} aria-hidden="true" />;
     case 'ai_skill':
       return <Sparkles className={className} aria-hidden="true" />;
     case 'template':

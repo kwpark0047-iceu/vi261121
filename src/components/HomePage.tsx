@@ -171,6 +171,7 @@ export function HomePage({
 
   const quickTypes: ContentType[] = [
     'web_app',
+    'mobile_app',
     'ai_tool',
     'mcp_server',
     'ai_skill',
@@ -334,7 +335,7 @@ export function HomePage({
           >
             <ResilientProjectImage
               src={HERO_IMAGE_PATH}
-              alt="VibeAtlas pastel maker studio showcase"
+              alt="W-Vibe pastel maker studio showcase"
               contentType="web_app"
               subtitle="Web Apps · MCP · AI Skills"
               aspectClassName="aspect-[16/10] lg:aspect-[16/11]"

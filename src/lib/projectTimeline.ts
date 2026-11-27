@@ -67,10 +67,10 @@ export function buildCatalogMilestoneEntries(
 
   if (createdMs > 0) {
     const titleByLang: Record<AppLanguage, string> = {
-      ko: 'VibeAtlas 디렉터리 등재',
-      en: 'Listed on VibeAtlas Directory',
-      zh: '收录至 VibeAtlas 目录',
-      ja: 'VibeAtlas ディレクトリに掲載',
+      ko: 'W-Vibe 디렉터리 등재',
+      en: 'Listed on W-Vibe Directory',
+      zh: '收录至 W-Vibe 目录',
+      ja: 'W-Vibe ディレクトリに掲載',
     };
     const summaryByLang: Record<AppLanguage, string> = {
       ko: `${project.name}의 초기 메타데이터와 저장소 정보가 디렉터리에 등록되었습니다.`,
@@ -85,7 +85,7 @@ export function buildCatalogMilestoneEntries(
       title: titleByLang[language],
       summary: summaryByLang[language],
       versionTag: 'Index',
-      actorLabel: project.makerName || 'VibeAtlas',
+      actorLabel: project.makerName || 'W-Vibe',
       externalUrl: projectRefUrl,
       timestampIso: project.createdAtIso,
       timestampMs: createdMs,

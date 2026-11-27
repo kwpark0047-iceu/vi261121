@@ -35,6 +35,7 @@ import {
   summarizeTimelineCounts,
 } from '../lib/projectTimeline';
 import { formatActivityTimestamp } from '../lib/communityActivity';
+import { fetchGitHubMilestones } from '../lib/githubApiClient';
 import { validateMilestoneLogInput } from '../lib/validation';
 
 const ADMIN_EMAIL = 'kwpark0047@iceu.kr';
@@ -172,16 +173,10 @@ export function ProjectMilestoneTimeline({
 
     const load = async () => {
       try {
-        const resp = await fetch(
-          `/api/github/milestones?repo=${encodeURIComponent(project.githubRepo)}`,
-          { signal: controller.signal }
-        );
-        const json = (await resp.json()) as GitHubMilestonesPayload & { error?: string };
+        const json = await fetchGitHubMilestones(project.githubRepo, {
+          signal: controller.signal,
+        });
         if (cancelled) return;
-        if (!resp.ok) {
-          setGithubError(json.error || `HTTP ${resp.status}`);
-          return;
-        }
         setGithubData(json);
       } catch (err) {
         if (!cancelled && !(err instanceof DOMException && err.name === 'AbortError')) {

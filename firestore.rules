@@ -48,6 +48,41 @@ service cloud.firestore {
       return arr is list && arr.size() <= maxLen && (arr.size() == 0 || arr[0] is string);
     }
 
+    function isValidMobilePlatform(val) {
+      return val in ['ios', 'android', 'pwa'];
+    }
+
+    function isValidMobilePlatforms(arr) {
+      return arr is list && arr.size() <= 3 && (
+        arr.size() == 0 || (
+          isValidMobilePlatform(arr[0]) &&
+          (arr.size() < 2 || isValidMobilePlatform(arr[1])) &&
+          (arr.size() < 3 || isValidMobilePlatform(arr[2]))
+        )
+      );
+    }
+
+    function isValidMobileConfig(cfg) {
+      return cfg is map &&
+        cfg.keys().hasAll([
+          'platforms', 'mobileDemoUrl', 'iosAppStoreUrl', 'androidPlayStoreUrl',
+          'mobilePackageUrl', 'bundleId', 'minOsVersion', 'devicePreset', 'orientation'
+        ]) &&
+        cfg.keys().hasOnly([
+          'platforms', 'mobileDemoUrl', 'iosAppStoreUrl', 'androidPlayStoreUrl',
+          'mobilePackageUrl', 'bundleId', 'minOsVersion', 'devicePreset', 'orientation'
+        ]) &&
+        isValidMobilePlatforms(cfg.platforms) &&
+        isValidOptionalUrl(cfg.mobileDemoUrl) &&
+        isValidOptionalUrl(cfg.iosAppStoreUrl) &&
+        isValidOptionalUrl(cfg.androidPlayStoreUrl) &&
+        isValidOptionalUrl(cfg.mobilePackageUrl) &&
+        isValidBoundedString(cfg.bundleId, 0, 120) &&
+        isValidBoundedString(cfg.minOsVersion, 0, 64) &&
+        cfg.devicePreset in ['iphone_16', 'pixel_9'] &&
+        cfg.orientation in ['portrait', 'landscape'];
+    }
+
     function isValidProjectShape(data) {
       return isValidBoundedString(data.slug, 2, 100) &&
         data.slug.matches('^[a-z0-9\\-]+$') &&
@@ -56,7 +91,7 @@ service cloud.firestore {
         isValidBoundedString(data.taglineKo, 0, 220) &&
         isValidBoundedString(data.description, 20, 4000) &&
         isValidBoundedString(data.descriptionKo, 0, 4000) &&
-        data.contentType in ['web_app', 'ai_tool', 'mcp_server', 'ai_skill', 'ai_agent', 'template', 'open_source'] &&
+        data.contentType in ['web_app', 'mobile_app', 'ai_tool', 'mcp_server', 'ai_skill', 'ai_agent', 'template', 'open_source'] &&
         isValidStringArray(data.categories, 6) &&
         isValidStringArray(data.techStack, 12) &&
         data.developmentPlatform in ['lovable', 'cursor', 'windsurf', 'bolt', 'v0', 'claude_code', 'replit', 'custom'] &&
@@ -82,6 +117,7 @@ service cloud.firestore {
         data.likesCount is number && data.likesCount >= 0 && data.likesCount <= 10000000 &&
         data.bookmarksCount is number && data.bookmarksCount >= 0 && data.bookmarksCount <= 10000000 &&
         isValidBoundedString(data.lastSyncedAt, 0, 64) &&
+        (!('mobileConfig' in data) || isValidMobileConfig(data.mobileConfig)) &&
         data.createdAt is timestamp &&
         data.updatedAt is timestamp;
     }
@@ -103,7 +139,7 @@ service cloud.firestore {
           'pricingModel', 'verificationStatus', 'provenanceSource',
           'liveDemoUrl', 'websiteUrl', 'githubRepo', 'githubUrl', 'thumbnailUrl',
           'makerName', 'makerHandle', 'ownerUid', 'githubStars', 'githubForks',
-          'likesCount', 'bookmarksCount', 'lastSyncedAt', 'createdAt', 'updatedAt'
+          'likesCount', 'bookmarksCount', 'lastSyncedAt', 'mobileConfig', 'createdAt', 'updatedAt'
         ]) &&
         isValidProjectShape(data);
     }
@@ -116,7 +152,7 @@ service cloud.firestore {
           'pricingModel', 'verificationStatus', 'provenanceSource',
           'liveDemoUrl', 'websiteUrl', 'githubRepo', 'githubUrl', 'thumbnailUrl',
           'makerName', 'makerHandle', 'ownerUid', 'githubStars', 'githubForks',
-          'likesCount', 'bookmarksCount', 'lastSyncedAt', 'createdAt', 'updatedAt'
+          'likesCount', 'bookmarksCount', 'lastSyncedAt', 'mobileConfig', 'createdAt', 'updatedAt'
         ]) &&
         isValidProjectShape(data);
     }
@@ -276,7 +312,7 @@ service cloud.firestore {
               'pricingModel', 'liveDemoUrl', 'websiteUrl', 'githubRepo',
               'githubUrl', 'thumbnailUrl', 'makerName', 'makerHandle',
               'githubStars', 'githubForks', 'lastSyncedAt', 'provenanceSource',
-              'updatedAt'
+              'mobileConfig', 'updatedAt'
             ])
           ) ||
           (

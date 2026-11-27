@@ -35,6 +35,7 @@ export const DEFAULT_SEARCH_FILTERS: SearchFilters = {
 
 const VALID_TYPES: ReadonlyArray<ContentType> = [
   'web_app',
+  'mobile_app',
   'ai_tool',
   'mcp_server',
   'ai_skill',

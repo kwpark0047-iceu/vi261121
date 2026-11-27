@@ -1,6 +1,7 @@
 import {
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   increment,
@@ -18,6 +19,7 @@ import {
 } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { db, handleFirestoreError, OperationType } from './firebase';
+import { normalizeMobileConfig, parseMobileConfigFromFirestore } from './mobileAppDemo';
 import type {
   AppLanguage,
   CatalogProject,
@@ -61,7 +63,7 @@ function buildPublicActorFields(user: User): {
   actorName: string;
   actorHandle: string;
 } {
-  const displayName = (user.displayName || 'VibeAtlas Member').trim().slice(0, 100) || 'VibeAtlas Member';
+  const displayName = (user.displayName || 'W-Vibe Member').trim().slice(0, 100) || 'W-Vibe Member';
   return {
     actorUid: user.uid,
     actorName: displayName,
@@ -83,7 +85,7 @@ export async function syncSignedInUserProfile(user: User): Promise<void> {
       doc(db, 'users', user.uid, 'public', 'profile'),
       {
         uid: user.uid,
-        displayName: (user.displayName || 'VibeAtlas Maker').slice(0, 100),
+        displayName: (user.displayName || 'W-Vibe Maker').slice(0, 100),
         handle: user.email ? `@${user.email.split('@')[0].slice(0, 50)}` : '',
         bio: '',
         country: 'KR',
@@ -156,6 +158,7 @@ export function subscribeToFirestoreProjects(
           lastSyncedAt: String(data.lastSyncedAt || ''),
           createdAtIso: toIsoString(data.createdAt),
           updatedAtIso: toIsoString(data.updatedAt),
+          mobileConfig: parseMobileConfigFromFirestore(data.mobileConfig),
           isCuratedSeed: false,
           historicalSignals: parseHistoricalSignals(data.historicalSignals),
         };
@@ -198,6 +201,7 @@ export async function createFirestoreProject(
 ): Promise<string> {
   const projectId = `proj_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
   const path = `projects/${projectId}`;
+  const mobileConfig = normalizeMobileConfig(payload.mobileConfig);
   try {
     await setDoc(doc(db, 'projects', projectId), {
       slug: payload.slug.slice(0, 100),
@@ -231,6 +235,7 @@ export async function createFirestoreProject(
       likesCount: 0,
       bookmarksCount: 0,
       lastSyncedAt: payload.lastSyncedAt.slice(0, 64),
+      ...(mobileConfig ? { mobileConfig } : {}),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
@@ -266,6 +271,7 @@ export async function updateProjectInFirestore(
   payload: FirestoreProjectUpdatePayload
 ): Promise<void> {
   const path = `projects/${projectId}`;
+  const mobileConfig = normalizeMobileConfig(payload.mobileConfig);
   try {
     await updateDoc(doc(db, 'projects', projectId), {
       name: payload.name.slice(0, 120),
@@ -294,6 +300,7 @@ export async function updateProjectInFirestore(
       githubForks: Math.max(0, Math.floor(payload.githubForks)),
       lastSyncedAt: payload.lastSyncedAt.slice(0, 64),
       provenanceSource: payload.provenanceSource,
+      mobileConfig: mobileConfig ? mobileConfig : deleteField(),
       updatedAt: serverTimestamp(),
     });
   } catch (err) {
@@ -479,7 +486,7 @@ function mapActivityDoc(d: { id: string; data: () => Record<string, unknown> }, 
     projectId: String(data.projectId || fallbackProjectId),
     projectSlug: String(data.projectSlug || ''),
     actorUid: String(data.actorUid || ''),
-    actorName: String(data.actorName || 'VibeAtlas Member'),
+    actorName: String(data.actorName || 'W-Vibe Member'),
     actorHandle: String(data.actorHandle || ''),
     type,
     reportReason:

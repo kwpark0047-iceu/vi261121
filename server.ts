@@ -398,7 +398,7 @@ async function createApp() {
   app.get('/api/health', (_req: Request, res: Response) => {
     res.json({
       ok: true,
-      app: 'VibeAtlas',
+      app: 'W-Vibe',
       hasGithubToken: Boolean(process.env.GITHUB_TOKEN?.trim()),
     });
   });
@@ -1132,6 +1132,10 @@ async function createApp() {
         translatedCount,
       });
     }
+  });
+
+  app.use('/api', (_req: Request, res: Response) => {
+    res.status(404).json({ error: 'API endpoint not found.' });
   });
 
   if (process.env.NODE_ENV !== 'production') {

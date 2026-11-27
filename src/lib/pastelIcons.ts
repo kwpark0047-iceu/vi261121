@@ -92,6 +92,7 @@ export const PASTEL_TONE_STYLES: Record<PastelTone, PastelTokenStyle> = {
 
 const CONTENT_TYPE_TO_TONE: Record<ContentType, PastelTone> = {
   web_app: 'sky',
+  mobile_app: 'aqua',
   ai_tool: 'lavender',
   mcp_server: 'mint',
   ai_skill: 'butter',

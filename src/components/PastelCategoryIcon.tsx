@@ -12,6 +12,7 @@ import {
   Pencil,
   Plug,
   Rocket,
+  Smartphone,
   Sparkles,
   Star,
   TrendingUp,
@@ -44,6 +45,8 @@ function renderContentTypeGlyph(contentType: ContentType, iconClass: string) {
   switch (contentType) {
     case 'web_app':
       return <Globe className={iconClass} strokeWidth={2.1} aria-hidden="true" />;
+    case 'mobile_app':
+      return <Smartphone className={iconClass} strokeWidth={2.1} aria-hidden="true" />;
     case 'ai_tool':
       return <Wand2 className={iconClass} strokeWidth={2.1} aria-hidden="true" />;
     case 'mcp_server':

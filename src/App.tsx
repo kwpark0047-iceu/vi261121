@@ -52,6 +52,11 @@ import {
   mapWebAppReposToCatalogProjects,
   mergeWebAppTop100WithCatalog,
 } from './lib/webAppsTop100';
+import {
+  fetchGitHubRepoMetadata,
+  fetchTopStarredRepos,
+  translateRepoDescriptionsSafely,
+} from './lib/githubApiClient';
 import { chunkTranslationItems, needsDescriptionTranslation } from './lib/repoDescriptionTranslator';
 import { DEFAULT_SEARCH_FILTERS, parseUrlState, serializeUrlState } from './lib/urlSync';
 import type {
@@ -332,17 +337,7 @@ export default function App() {
     setWebAppsLoading(true);
     setWebAppsError(null);
     try {
-      const refreshParam = forceRefresh ? '&refresh=1' : '';
-      const resp = await fetch(`/api/github/top-starred?preset=web_apps${refreshParam}`);
-      const data = (await resp.json()) as {
-        items?: GitHubRankedRepo[];
-        fetchedAt?: string;
-        error?: string;
-      };
-      if (!resp.ok) {
-        setWebAppsError(data.error || `Failed to load (${resp.status})`);
-        return;
-      }
+      const data = await fetchTopStarredRepos('web_apps', { forceRefresh });
       setWebAppTop100Repos(Array.isArray(data.items) ? data.items : []);
       setWebAppFetchedAt(data.fetchedAt || new Date().toISOString());
     } catch (err) {
@@ -391,20 +386,25 @@ export default function App() {
       for (const batch of batches) {
         if (cancelled) break;
         try {
-          const resp = await fetch('/api/github/translate-descriptions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ targetLanguage: language, items: batch }),
+          const outcome = await translateRepoDescriptionsSafely({
+            targetLanguage: language,
+            items: batch,
             signal: controller.signal,
           });
-          if (!resp.ok) {
-            if (resp.status === 401 || resp.status === 403) break;
+          if (!outcome.ok) {
+            if (
+              outcome.errorCode === 'BACKEND_UNAVAILABLE' ||
+              outcome.errorCode === 'MISSING_API_KEY' ||
+              outcome.status === 401 ||
+              outcome.status === 403
+            ) {
+              break;
+            }
             continue;
           }
-          const data = (await resp.json()) as { translations?: Record<string, string> };
-          if (!cancelled && data.translations) {
+          if (!cancelled && outcome.translations) {
             const entries: Array<[number, string]> = [];
-            for (const [k, v] of Object.entries(data.translations)) {
+            for (const [k, v] of Object.entries(outcome.translations)) {
               const num = Number(k);
               if (Number.isFinite(num) && typeof v === 'string' && v.trim()) {
                 entries.push([num, v.trim()]);
@@ -589,17 +589,15 @@ export default function App() {
       if (!project.githubRepo) return;
       setSyncingProjectId(project.id);
       try {
-        const resp = await fetch(`/api/github/repo?repo=${encodeURIComponent(project.githubRepo)}`);
-        const data = await resp.json();
-        if (resp.ok && data.repo) {
-          const repo = data.repo as GitHubRepoMetadata;
-          recordStarSnapshot(project.githubRepo, repo.fetchedAt, repo.stars);
-          setSnapshotRevision((v) => v + 1);
-          setGithubSyncedMap((prev) => ({ ...prev, [project.githubRepo]: repo }));
-          if (!project.isCuratedSeed && user && project.ownerUid === user.uid) {
-            await updateProjectGitHubStats(project.id, repo.stars, repo.forks, repo.license);
-          }
+        const repo = await fetchGitHubRepoMetadata(project.githubRepo);
+        recordStarSnapshot(project.githubRepo, repo.fetchedAt, repo.stars);
+        setSnapshotRevision((v) => v + 1);
+        setGithubSyncedMap((prev) => ({ ...prev, [project.githubRepo]: repo }));
+        if (!project.isCuratedSeed && user && project.ownerUid === user.uid) {
+          await updateProjectGitHubStats(project.id, repo.stars, repo.forks, repo.license);
         }
+      } catch {
+        // Non-fatal sync failure
       } finally {
         setSyncingProjectId(null);
       }
@@ -694,9 +692,21 @@ export default function App() {
           <TopNav
             language={language}
             activePage={activePage}
+            projects={allProjects}
             onNavigate={(page) => {
               setActivePage(page);
               window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSelectProject={openDetailWithSound}
+            onSelectTag={(tag) => {
+              setSelectedSlug(null);
+              setFilters({ ...DEFAULT_SEARCH_FILTERS, tags: [tag], page: 1 });
+              setActivePage('discover');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onSubmitSearch={(searchQuery) => {
+              setSelectedSlug(null);
+              handleSearchAndDiscover({ q: searchQuery, page: 1 });
             }}
           />
 
@@ -830,6 +840,7 @@ export default function App() {
             isLiked={selectedProject ? guestLikes.has(selectedProject.id) : false}
             isBookmarked={selectedProject ? effectiveBookmarks.has(selectedProject.id) : false}
             isSyncing={Boolean(selectedProject && syncingProjectId === selectedProject.id)}
+            snapshotRevision={snapshotRevision}
             localActivities={localActivities}
             userReports={userReports}
             userClaims={userClaims}

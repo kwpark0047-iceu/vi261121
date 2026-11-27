@@ -2,6 +2,7 @@ export type AppLanguage = 'ko' | 'en' | 'zh' | 'ja';
 
 export type ContentType =
   | 'web_app'
+  | 'mobile_app'
   | 'ai_tool'
   | 'mcp_server'
   | 'ai_skill'
@@ -13,6 +14,7 @@ export type ProjectCategory =
   | 'AI Agent'
   | 'MCP Server'
   | 'Web Tool'
+  | 'Mobile App'
   | 'CLI Tool'
   | 'Framework'
   | 'AI Skills'
@@ -22,6 +24,24 @@ export type ProjectCategory =
   | 'Templates'
   | 'Backend'
   | 'SDK';
+
+export type MobileTargetPlatform = 'ios' | 'android' | 'pwa';
+
+export type MobileDevicePreset = 'iphone_16' | 'pixel_9';
+
+export type MobileDemoOrientation = 'portrait' | 'landscape';
+
+export interface MobileAppConfig {
+  platforms: MobileTargetPlatform[];
+  mobileDemoUrl: string;
+  iosAppStoreUrl: string;
+  androidPlayStoreUrl: string;
+  mobilePackageUrl: string;
+  bundleId: string;
+  minOsVersion: string;
+  devicePreset: MobileDevicePreset;
+  orientation: MobileDemoOrientation;
+}
 
 export type DevelopmentPlatform =
   | 'lovable'
@@ -119,6 +139,7 @@ export interface CatalogProject {
   lastSyncedAt: string;
   createdAtIso: string;
   updatedAtIso: string;
+  mobileConfig?: MobileAppConfig;
   isCuratedSeed?: boolean;
   isFeatured?: boolean;
   leaderboardRank?: number;

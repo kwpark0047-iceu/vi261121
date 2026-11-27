@@ -20,6 +20,15 @@ export const UI_STRINGS: Record<
       makers: string;
       submit: string;
       primaryCta: string;
+      searchPlaceholder: string;
+      searchAriaLabel: string;
+      searchClear: string;
+      searchToggle: string;
+      searchProjectsHeading: string;
+      searchTagsHeading: string;
+      searchTagCountSuffix: string;
+      searchNoResults: string;
+      searchActionSubmit: string;
     };
     workspace: {
       savedBookmarks: string;
@@ -564,6 +573,29 @@ export const UI_STRINGS: Record<
       insightsEmptyHint: string;
       insightsAxisCount: string;
       editProject: string;
+      starGrowthTitle: string;
+      starGrowthSubtitle: string;
+      starGrowthRange7d: string;
+      starGrowthRange30d: string;
+      starGrowthRangeAll: string;
+      starGrowthModeTotal: string;
+      starGrowthModeDelta: string;
+      starGrowthKpiCurrent: string;
+      starGrowthKpiNet: string;
+      starGrowthKpiAvgDay: string;
+      starGrowthKpiSnapshots: string;
+      starGrowthDaysSuffix: string;
+      starGrowthPerDaySuffix: string;
+      starGrowthNoRepo: string;
+      starGrowthUnsynced: string;
+      starGrowthSingleBaseline: string;
+      starGrowthTooltipTotal: string;
+      starGrowthTooltipDelta: string;
+      starGrowthTooltipCumulative: string;
+      mobileViewToggle: string;
+      mobileViewTitle: string;
+      mobileViewSubtitle: string;
+      mobileViewClose: string;
     };
     submit: {
       title: string;
@@ -673,6 +705,55 @@ export const UI_STRINGS: Record<
       changedCountSuffix: string;
       closeLabel: string;
     };
+    mobileDemo: {
+      sectionTitle: string;
+      sectionSubtitle: string;
+      enableToggleLabel: string;
+      enableToggleHint: string;
+      targetPlatformsLabel: string;
+      quickMobileStackLabel: string;
+      mobileDemoUrlLabel: string;
+      mobileDemoUrlPlaceholder: string;
+      iosAppStoreLabel: string;
+      iosAppStorePlaceholder: string;
+      androidPlayStoreLabel: string;
+      androidPlayStorePlaceholder: string;
+      mobilePackageUrlLabel: string;
+      mobilePackageUrlPlaceholder: string;
+      bundleIdLabel: string;
+      bundleIdPlaceholder: string;
+      minOsLabel: string;
+      minOsPlaceholder: string;
+      devicePresetLabel: string;
+      orientationLabel: string;
+      presetIphone: string;
+      presetPixel: string;
+      orientationPortrait: string;
+      orientationLandscape: string;
+      liveSubmitPreviewTitle: string;
+      liveSubmitPreviewSubtitle: string;
+      simulatorTitle: string;
+      simulatorSubtitle: string;
+      modeAppCard: string;
+      modeLiveFrame: string;
+      openExternalButton: string;
+      copyDemoLinkButton: string;
+      copiedLinkLabel: string;
+      iframeFallbackNotice: string;
+      iframeBlockedButton: string;
+      qrTitle: string;
+      qrSubtitleDemo: string;
+      qrSubtitleStore: string;
+      qrSubtitleShare: string;
+      storeLinksTitle: string;
+      noStoreLinksNote: string;
+      specsTitle: string;
+      cardBadgeLabel: string;
+      previewTabOverview: string;
+      previewTabFeatures: string;
+      previewTabRelease: string;
+      previewInteractiveCta: string;
+    };
     footer: {
       tagline: string;
       transparencyNote: string;
@@ -722,6 +803,8 @@ export const UI_STRINGS: Record<
       emptyFilteredBody: string;
       resetFilterButton: string;
       errorTitle: string;
+      dataUnavailableTitle: string;
+      dataUnavailableBody: string;
       retryButton: string;
       rateLimitResetPrefix: string;
       translatingDescriptions: string;
@@ -740,6 +823,15 @@ export const UI_STRINGS: Record<
       makers: '메이커',
       submit: '등록하기',
       primaryCta: '프로젝트 등록',
+      searchPlaceholder: '프로젝트 · 태그 검색...',
+      searchAriaLabel: '프로젝트 및 태그 실시간 검색',
+      searchClear: '검색어 지우기',
+      searchToggle: '검색 열기',
+      searchProjectsHeading: '일치하는 프로젝트',
+      searchTagsHeading: '일치하는 태그',
+      searchTagCountSuffix: '개',
+      searchNoResults: '일치하는 프로젝트나 태그가 없습니다.',
+      searchActionSubmit: '전체 검색 결과 보기 (Enter)',
     },
     workspace: {
       savedBookmarks: '북마크',
@@ -752,7 +844,7 @@ export const UI_STRINGS: Record<
       soundOff: '효과음 끔',
       koreanSearchNoteTitle: '한/영 다국어 검색 안내',
       koreanSearchNoteBody:
-        '기본 영문 형태소 토크나이저는 한국어 조사·어미를 분리하지 못하므로, VibeAtlas는 한국어 부분 문자열 매칭과 기술 용어 한·영 동의어 확장(예: 에이전트↔agent, 서버↔server)을 병행합니다.',
+        '기본 영문 형태소 토크나이저는 한국어 조사·어미를 분리하지 못하므로, W-Vibe는 한국어 부분 문자열 매칭과 기술 용어 한·영 동의어 확장(예: 에이전트↔agent, 서버↔server)을 병행합니다.',
       authErrorClose: '닫기',
       authUnauthorizedTitle: '현재 배포 도메인이 Firebase 인증 허용 도메인에 등록되지 않았습니다',
       authUnauthorizedBody:
@@ -773,7 +865,7 @@ export const UI_STRINGS: Record<
     hero: {
       kicker: '검증된 메타데이터 · 투명한 지표',
       headline: 'AI 앱과 MCP, 한눈에 탐색',
-      subheadline: 'GitHub 스타와 커뮤니티 시그널을 분리해 투명하게 보여주는 아틀라스',
+      subheadline: 'GitHub 스타와 커뮤니티 시그널을 분리해 투명하게 보여주는 W-바이브',
       searchPlaceholder: 'MCP, Lovable, 에이전트, Supabase...',
       searchButton: '검색',
       quickBrowseLabel: '빠른 탐색',
@@ -845,7 +937,7 @@ export const UI_STRINGS: Record<
       recentActivityActionSubmitted: '새 프로젝트를 등록했습니다',
       recentActivityActionLiked: '좋아요를 눌렀습니다',
       recentActivityActionBookmarked: '북마크에 저장했습니다',
-      recentActivityCommunityActor: 'VibeAtlas 커뮤니티',
+      recentActivityCommunityActor: 'W-Vibe 커뮤니티',
       recentActivityGuestActor: '게스트 방문자',
       recentActivityLiveLabel: '실시간',
       recentActivityDeltaSuffix: '건 최근 반응',
@@ -956,7 +1048,7 @@ export const UI_STRINGS: Record<
       switchToSignalButton: '커뮤니티 성장 속도 보기',
       emptyFilteredTitle: '현재 필터에 해당하는 성장 데이터가 없습니다',
       emptyFilteredBody: '필터 조건을 완화하면 급상승 프로젝트의 성장 속도 차트를 확인할 수 있습니다.',
-      fallbackNote: '현재 목록에 다중 일자 GitHub 스타 변화량이 없어 실측 VibeAtlas 참여 성장 속도를 기본으로 표시합니다.',
+      fallbackNote: '현재 목록에 다중 일자 GitHub 스타 변화량이 없어 실측 W-Vibe 참여 성장 속도를 기본으로 표시합니다.',
     },
     githubTrendingBubble: {
       title: 'GitHub Trending · AI 생태계',
@@ -973,7 +1065,7 @@ export const UI_STRINGS: Record<
       pushedLabel: '최근 푸시',
       topMoversHeading: '상위 급상승 저장소',
       openGithubButton: 'GitHub 열기',
-      inspectVibeAtlasButton: 'VibeAtlas 상세',
+      inspectVibeAtlasButton: 'W-Vibe 상세',
       loadingLabel: 'AI 생태계 GitHub 트렌딩 저장소를 불러오는 중...',
       emptyTitle: '선택한 언어의 트렌딩 저장소가 없습니다',
       emptyBody: '전체 언어 필터로 되돌리면 AI 생태계 전체 버블 차트를 확인할 수 있습니다.',
@@ -1008,7 +1100,7 @@ export const UI_STRINGS: Record<
       recencyLabel: '최근 활동',
       todayLabel: '오늘',
       daysAgoSuffix: '일 전',
-      sourceDirectory: 'VibeAtlas 등록',
+      sourceDirectory: 'W-Vibe 등록',
       sourceEnriched: '디렉터리 + 실시간 GitHub',
       sourceEcosystem: 'GitHub AI 생태계',
       inspectButton: '상세 보기',
@@ -1069,7 +1161,7 @@ export const UI_STRINGS: Record<
       unclaimedBadge: '미인증 리스팅',
       panelTitleClaimed: '메이커 소유권 인증 완료',
       panelBodyClaimed:
-        '공식 제작자가 VibeAtlas에서 소유권을 직접 인증했습니다. 공식 링크, 라이선스 및 메이커 귀속 정보의 신뢰도가 검증되었습니다.',
+        '공식 제작자가 W-Vibe에서 소유권을 직접 인증했습니다. 공식 링크, 라이선스 및 메이커 귀속 정보의 신뢰도가 검증되었습니다.',
       panelTitlePending: '메이커 소유권 인증 심사 중',
       panelBodyPending:
         '소유권 인증 증빙이 접수되어 검토 중입니다. 승인이 완료되면 프로젝트 카드와 상세 화면에 메이커 인증 배지가 표시됩니다.',
@@ -1103,7 +1195,7 @@ export const UI_STRINGS: Record<
       colAttribute: '비교 항목',
       sectionGithub: 'GitHub 저장소 지표',
       sectionMetadata: '메타데이터 · 기술 스택',
-      sectionCommunity: 'VibeAtlas 내부 활동 · 링크',
+      sectionCommunity: 'W-Vibe 내부 활동 · 링크',
       rowGithubStars: 'GitHub 스타',
       rowGithubForks: 'GitHub 포크',
       rowLicense: '라이선스',
@@ -1128,7 +1220,7 @@ export const UI_STRINGS: Record<
     detail: {
       close: '닫기',
       externalLinksTitle: '외부 링크 (외부 사이트로 이동)',
-      internalActionsTitle: 'VibeAtlas 내부 액션',
+      internalActionsTitle: 'W-Vibe 내부 액션',
       liveDemo: '라이브 데모',
       officialWebsite: '공식 웹사이트',
       githubRepository: 'GitHub 저장소',
@@ -1147,7 +1239,7 @@ export const UI_STRINGS: Record<
       pricingLabel: '가격 정책',
       countryLangLabel: '국가 / 언어',
       historyChartTitle: '최근 14일 성장 추이 (GitHub 스타 · 내부 신호)',
-      historyChartSubtitle: 'GitHub 스타 변화량과 VibeAtlas 내부 북마크·좋아요는 별도 축으로 구분됩니다.',
+      historyChartSubtitle: 'GitHub 스타 변화량과 W-Vibe 내부 북마크·좋아요는 별도 축으로 구분됩니다.',
       chartTabStars: 'GitHub 스타',
       chartTabInternal: '내부 좋아요·북마크',
       chartUnsyncedStarsHint: 'GitHub 저장소가 아직 동기화되지 않았습니다. 실시간 스타 수를 반영하려면 동기화하세요.',
@@ -1183,7 +1275,7 @@ export const UI_STRINGS: Record<
       activityReasonSpam: '스팸',
       activityReasonSecurityConcern: '보안 우려',
       vibeScoreTitle: '바이브 스코어 · 커뮤니티 건강도',
-      vibeScoreSubtitle: 'VibeAtlas 내부 참여도, 최근 활동 모멘텀, 신뢰·신선도 및 동기화된 GitHub 지표를 종합한 D3 게이지입니다.',
+      vibeScoreSubtitle: 'W-Vibe 내부 참여도, 최근 활동 모멘텀, 신뢰·신선도 및 동기화된 GitHub 지표를 종합한 D3 게이지입니다.',
       vibeScoreOutOf100: '/ 100',
       vibeScoreTierThriving: '활발 (Thriving)',
       vibeScoreTierActive: '양호 (Active)',
@@ -1256,7 +1348,7 @@ export const UI_STRINGS: Record<
       volatilityVerdictSentimentLeading: '커뮤니티 정서 선행 · 변동 확대',
       volatilityVerdictSentimentLeadingDesc: '내부 바이브 관심도나 변동성이 최근 저장소 스타 성장 속도보다 빠르게 움직이고 있습니다.',
       volatilityVerdictAdoptionOutpacing: '기술 채택이 정서 상회',
-      volatilityVerdictAdoptionOutpacingDesc: 'GitHub 스타 채택 속도가 VibeAtlas 내 커뮤니티 모멘텀보다 빠르게 앞서가고 있습니다.',
+      volatilityVerdictAdoptionOutpacingDesc: 'GitHub 스타 채택 속도가 W-Vibe 내 커뮤니티 모멘텀보다 빠르게 앞서가고 있습니다.',
       volatilityVerdictUnsynced: 'GitHub 미동기화 상태',
       volatilityVerdictUnsyncedDesc: '내부 바이브 변동성은 실시간 추적 중이며, GitHub 동기화 시 스타 성장률 비교선이 활성화됩니다.',
       volatilityVerdictBaseline: '초기 단일 스냅샷 기준선',
@@ -1291,6 +1383,29 @@ export const UI_STRINGS: Record<
       insightsEmptyHint: '좋아요 또는 북마크를 남기면 일별 커뮤니티 참여 추이가 즉시 반영됩니다.',
       insightsAxisCount: '건수',
       editProject: '프로젝트 수정',
+      starGrowthTitle: '스타 성장 추이 (Star Growth)',
+      starGrowthSubtitle: '스타 스냅샷 시스템에 기록된 일별 GitHub 스타 누적 기록과 일간 증감을 시각화합니다.',
+      starGrowthRange7d: '7일',
+      starGrowthRange30d: '30일',
+      starGrowthRangeAll: '전체',
+      starGrowthModeTotal: '누적 스타',
+      starGrowthModeDelta: '일간 증감',
+      starGrowthKpiCurrent: '최신 스냅샷 스타',
+      starGrowthKpiNet: '기간 순증가',
+      starGrowthKpiAvgDay: '일평균 증감',
+      starGrowthKpiSnapshots: '기록된 스냅샷',
+      starGrowthDaysSuffix: '일',
+      starGrowthPerDaySuffix: '/일',
+      starGrowthNoRepo: '연결된 GitHub 저장소가 없어 스타 스냅샷을 추적할 수 없습니다.',
+      starGrowthUnsynced: '저장된 스타 스냅샷이 없습니다. 지금 동기화해 첫 기준 스냅샷을 기록하세요.',
+      starGrowthSingleBaseline: '현재 단일 스냅샷만 기록되었습니다. 여러 날짜에 동기화가 누적되면 성장 곡선이 표시됩니다.',
+      starGrowthTooltipTotal: '기록된 스타',
+      starGrowthTooltipDelta: '전일 대비',
+      starGrowthTooltipCumulative: '구간 누적',
+      mobileViewToggle: '모바일 뷰',
+      mobileViewTitle: '모바일 뷰 미리보기',
+      mobileViewSubtitle: '스마트폰 화면 비율(9:19.5) 프레임에서 프로젝트 라이브 데모를 미리봅니다.',
+      mobileViewClose: '모바일 뷰 닫기',
     },
     submit: {
       title: '새 프로젝트 등록',
@@ -1400,8 +1515,57 @@ export const UI_STRINGS: Record<
       changedCountSuffix: '개 항목 수정됨',
       closeLabel: '수정 창 닫기',
     },
+    mobileDemo: {
+      sectionTitle: '모바일 앱 출시 & 인터랙티브 데모 설정',
+      sectionSubtitle: 'iOS · Android · PWA 지원 정보, 스토어 링크, 디바이스 시뮬레이터 및 QR 테스트 URL을 구성하세요.',
+      enableToggleLabel: '모바일 앱 / PWA 디바이스 데모 활성화',
+      enableToggleHint: '웹 앱이나 AI 툴도 모바일 미리보기 프레임과 QR 테스트 링크를 함께 제공할 수 있습니다.',
+      targetPlatformsLabel: '지원 모바일 OS / 환경',
+      quickMobileStackLabel: '모바일 프레임워크 빠른 추가',
+      mobileDemoUrlLabel: '모바일 인터랙티브 데모 URL (Expo Snack / PWA / 모바일 웹)',
+      mobileDemoUrlPlaceholder: 'https://snack.expo.dev/... 또는 https://m.example.com',
+      iosAppStoreLabel: 'App Store / TestFlight URL',
+      iosAppStorePlaceholder: 'https://apps.apple.com/... 또는 https://testflight.apple.com/...',
+      androidPlayStoreLabel: 'Google Play URL',
+      androidPlayStorePlaceholder: 'https://play.google.com/store/apps/details?id=...',
+      mobilePackageUrlLabel: '직접 빌드 / APK / IPA / Expo URL',
+      mobilePackageUrlPlaceholder: 'https://expo.dev/... 또는 https://github.com/.../releases',
+      bundleIdLabel: '번들 / 패키지 ID',
+      bundleIdPlaceholder: 'com.wvibe.app',
+      minOsLabel: '최소 OS 요구사항',
+      minOsPlaceholder: 'iOS 16+ / Android 13+',
+      devicePresetLabel: '기본 디바이스 프레임',
+      orientationLabel: '기본 화면 방향',
+      presetIphone: 'iPhone 16',
+      presetPixel: 'Pixel 9',
+      orientationPortrait: '세로 (Portrait)',
+      orientationLandscape: '가로 (Landscape)',
+      liveSubmitPreviewTitle: '실시간 모바일 디바이스 프리뷰 & QR 테스트',
+      liveSubmitPreviewSubtitle: '입력한 정보가 상세 페이지의 모바일 시뮬레이터에 어떻게 표시되는지 바로 확인하세요.',
+      simulatorTitle: '인터랙티브 모바일 데모 시뮬레이터',
+      simulatorSubtitle: '디바이스 프레임 전환, 세로/가로 회전 및 스마트폰 QR 즉시 테스트를 지원합니다.',
+      modeAppCard: '인터랙티브 앱 카드',
+      modeLiveFrame: '실시간 웹/Expo 프레임',
+      openExternalButton: '새 탭에서 열기',
+      copyDemoLinkButton: '모바일 테스트 링크 복사',
+      copiedLinkLabel: '링크 복사됨',
+      iframeFallbackNotice: '외부 사이트 보안 정책(X-Frame-Options)으로 임베드가 제한된 경우 앱 카드 모드나 새 탭 열기를 이용하세요.',
+      iframeBlockedButton: '앱 카드 프리뷰로 보기',
+      qrTitle: '스마트폰에서 바로 테스트 (QR)',
+      qrSubtitleDemo: '카메라로 스캔하면 라이브 모바일 데모가 휴대폰에서 바로 열립니다.',
+      qrSubtitleStore: '카메라로 스캔하면 스토어/빌드 다운로드 페이지로 이동합니다.',
+      qrSubtitleShare: '카메라로 스캔하면 W-Vibe 모바일 프로젝트 페이지로 이동합니다.',
+      storeLinksTitle: '스토어 & 빌드 배포 링크',
+      noStoreLinksNote: '등록된 스토어 또는 직접 빌드 링크가 아직 없습니다.',
+      specsTitle: '모바일 앱 사양',
+      cardBadgeLabel: '모바일 데모',
+      previewTabOverview: '개요',
+      previewTabFeatures: '기술 스택',
+      previewTabRelease: '출시 정보',
+      previewInteractiveCta: '모바일 데모 실행',
+    },
     footer: {
-      tagline: 'VibeAtlas — AI · MCP · Skills 디렉터리',
+      tagline: 'W-Vibe — AI · MCP · Skills 디렉터리',
       transparencyNote: 'GitHub 스타와 내부 시그널은 분리 집계됩니다.',
     },
     voiceSearch: {
@@ -1419,7 +1583,7 @@ export const UI_STRINGS: Record<
     },
     githubStarsPage: {
       title: 'GitHub 스타 Top 100 랭킹',
-      subtitle: 'GitHub 공식 Search REST API 기준 최다 스타 저장소 1위부터 100위까지 실시간 집계입니다 (VibeAtlas 내부 좋아요·북마크와 분리 집계).',
+      subtitle: 'GitHub 공식 Search REST API 기준 최다 스타 저장소 1위부터 100위까지 실시간 집계입니다 (W-Vibe 내부 좋아요·북마크와 분리 집계).',
       refreshButton: '실시간 새로고침',
       refreshing: '불러오는 중...',
       presetAll: '전체 Top 100',
@@ -1443,12 +1607,14 @@ export const UI_STRINGS: Record<
       colForks: 'Forks',
       colStars: 'GitHub 스타',
       colActions: '링크',
-      openInVibeAtlas: 'VibeAtlas 상세',
+      openInVibeAtlas: 'W-Vibe 상세',
       openGithub: 'GitHub',
       emptyFilteredTitle: '필터 조건에 일치하는 저장소가 없습니다',
       emptyFilteredBody: '검색어나 언어 필터를 초기화해 전체 100위 목록을 확인해 보세요.',
       resetFilterButton: '필터 초기화',
       errorTitle: 'GitHub 스타 랭킹을 불러오지 못했습니다',
+      dataUnavailableTitle: '데이터를 사용할 수 없습니다',
+      dataUnavailableBody: '랭킹 API가 일시적으로 점검 중이거나 유효하지 않은 응답(HTML 오류 페이지 등)을 반환했습니다. 잠시 후 다시 시도해 주세요.',
       retryButton: '다시 시도',
       rateLimitResetPrefix: 'API 할당량 초기화 예정',
       translatingDescriptions: '저장소 설명 한국어 번역 중...',
@@ -1466,6 +1632,15 @@ export const UI_STRINGS: Record<
       makers: 'Makers',
       submit: 'Submit',
       primaryCta: 'Submit Project',
+      searchPlaceholder: 'Search projects or tags...',
+      searchAriaLabel: 'Search projects and tags',
+      searchClear: 'Clear search',
+      searchToggle: 'Toggle search',
+      searchProjectsHeading: 'Projects',
+      searchTagsHeading: 'Tags',
+      searchTagCountSuffix: 'projects',
+      searchNoResults: 'No matching projects or tags found.',
+      searchActionSubmit: 'Search all results (Enter)',
     },
     workspace: {
       savedBookmarks: 'Bookmarks',
@@ -1478,7 +1653,7 @@ export const UI_STRINGS: Record<
       soundOff: 'Sound Off',
       koreanSearchNoteTitle: 'Multilingual Search Strategy',
       koreanSearchNoteBody:
-        'Standard English word stemmers skip Korean agglutinative tokens. VibeAtlas pairs case-insensitive Korean/English substring matching with curated bilingual tech term expansion.',
+        'Standard English word stemmers skip Korean agglutinative tokens. W-Vibe pairs case-insensitive Korean/English substring matching with curated bilingual tech term expansion.',
       authErrorClose: 'Dismiss',
       authUnauthorizedTitle: 'This deployed domain is not yet authorized in Firebase Authentication',
       authUnauthorizedBody:
@@ -1571,7 +1746,7 @@ export const UI_STRINGS: Record<
       recentActivityActionSubmitted: 'submitted',
       recentActivityActionLiked: 'liked',
       recentActivityActionBookmarked: 'bookmarked',
-      recentActivityCommunityActor: 'VibeAtlas Community',
+      recentActivityCommunityActor: 'W-Vibe Community',
       recentActivityGuestActor: 'Guest Visitor',
       recentActivityLiveLabel: 'Live',
       recentActivityDeltaSuffix: 'recent',
@@ -1682,7 +1857,7 @@ export const UI_STRINGS: Record<
       switchToSignalButton: 'View Community Velocity',
       emptyFilteredTitle: 'No velocity data matches active filters',
       emptyFilteredBody: 'Broaden your filters to inspect growth velocity across rising projects.',
-      fallbackNote: 'Showing verified VibeAtlas engagement velocity while multi-day GitHub star snapshots accumulate.',
+      fallbackNote: 'Showing verified W-Vibe engagement velocity while multi-day GitHub star snapshots accumulate.',
     },
     githubTrendingBubble: {
       title: 'GitHub Trending',
@@ -1699,7 +1874,7 @@ export const UI_STRINGS: Record<
       pushedLabel: 'Last Push',
       topMoversHeading: 'Top Daily Movers',
       openGithubButton: 'Open on GitHub',
-      inspectVibeAtlasButton: 'Inspect in VibeAtlas',
+      inspectVibeAtlasButton: 'Inspect in W-Vibe',
       loadingLabel: 'Loading active AI ecosystem repositories...',
       emptyTitle: 'No trending repositories match this language',
       emptyBody: 'Reset the language filter to view all active AI ecosystem bubbles.',
@@ -1734,7 +1909,7 @@ export const UI_STRINGS: Record<
       recencyLabel: 'Last Active',
       todayLabel: 'Today',
       daysAgoSuffix: 'd ago',
-      sourceDirectory: 'VibeAtlas Directory',
+      sourceDirectory: 'W-Vibe Directory',
       sourceEnriched: 'Directory + Live GitHub',
       sourceEcosystem: 'GitHub AI Ecosystem',
       inspectButton: 'Inspect Detail',
@@ -1782,20 +1957,20 @@ export const UI_STRINGS: Record<
       newArrival: 'New Arrival',
       highActivity: 'High Activity',
       featuredTooltip: 'Editorial spotlight based on verified metadata and top community standing.',
-      newArrivalTooltip: 'Recently added to VibeAtlas on {date}.',
+      newArrivalTooltip: 'Recently added to W-Vibe on {date}.',
       highActivityTooltip: 'Sustained recent engagement and repository update momentum.',
       highActivityStarsTooltip: 'High repository momentum with +{count} GitHub stars in the last 7 days.',
       highActivitySignalsTooltip: 'High community momentum with +{count} likes and bookmarks in the last 7 days.',
     },
     verification: {
       claimedBadge: 'Maker Verified',
-      claimedTooltip: 'Maker identity and project ownership are verified on VibeAtlas.',
+      claimedTooltip: 'Maker identity and project ownership are verified on W-Vibe.',
       pendingBadge: 'Claim Pending',
       pendingTooltip: 'Ownership verification claim submitted and currently under review.',
       unclaimedBadge: 'Unclaimed',
       panelTitleClaimed: 'Verified Maker Ownership',
       panelBodyClaimed:
-        'The official maker has claimed and verified this listing on VibeAtlas, confirming authentic links, license attribution, and stewardship.',
+        'The official maker has claimed and verified this listing on W-Vibe, confirming authentic links, license attribution, and stewardship.',
       panelTitlePending: 'Maker Claim Under Review',
       panelBodyPending:
         'An ownership verification claim has been submitted and is awaiting review. Once approved, the verified maker seal appears on all cards.',
@@ -1853,8 +2028,8 @@ export const UI_STRINGS: Record<
     },
     detail: {
       close: 'Close',
-      externalLinksTitle: 'External Links (Leaves VibeAtlas)',
-      internalActionsTitle: 'VibeAtlas Actions',
+      externalLinksTitle: 'External Links (Leaves W-Vibe)',
+      internalActionsTitle: 'W-Vibe Actions',
       liveDemo: 'Live Demo',
       officialWebsite: 'Official Website',
       githubRepository: 'GitHub Repo',
@@ -1873,7 +2048,7 @@ export const UI_STRINGS: Record<
       pricingLabel: 'Pricing',
       countryLangLabel: 'Country / Language',
       historyChartTitle: '14-Day Growth History (GitHub Stars & Internal Signals)',
-      historyChartSubtitle: 'External GitHub stars and internal VibeAtlas engagement are plotted on separate charts.',
+      historyChartSubtitle: 'External GitHub stars and internal W-Vibe engagement are plotted on separate charts.',
       chartTabStars: 'GitHub Stars',
       chartTabInternal: 'Internal Signals',
       chartUnsyncedStarsHint: 'GitHub repository has not been synced yet. Sync now to plot live star totals.',
@@ -1909,7 +2084,7 @@ export const UI_STRINGS: Record<
       activityReasonSpam: 'Spam',
       activityReasonSecurityConcern: 'Security concern',
       vibeScoreTitle: 'Vibe Score · Activity Health',
-      vibeScoreSubtitle: 'Transparent D3 health gauge derived from internal VibeAtlas engagement, momentum, verification freshness, and synced GitHub traction.',
+      vibeScoreSubtitle: 'Transparent D3 health gauge derived from internal W-Vibe engagement, momentum, verification freshness, and synced GitHub traction.',
       vibeScoreOutOf100: '/ 100',
       vibeScoreTierThriving: 'Thriving',
       vibeScoreTierActive: 'Active',
@@ -1921,7 +2096,7 @@ export const UI_STRINGS: Record<
       vibeScorePillarHealth: 'Verification & Freshness',
       vibeScoreUnsyncedNote: 'GitHub not synced yet (external traction is 0 until synced)',
       vibeScoreReportsPenalty: 'Sentiment deduction from open reports',
-      vibeScoreFormulaNote: 'Combines up to 75 internal VibeAtlas health points with up to 25 synced GitHub traction points.',
+      vibeScoreFormulaNote: 'Combines up to 75 internal W-Vibe health points with up to 25 synced GitHub traction points.',
       sharePromoteTitle: 'Promote & Share',
       copyDirectLink: 'Copy Share Link',
       copyPromoPitch: 'Copy Promo Copy',
@@ -1980,9 +2155,9 @@ export const UI_STRINGS: Record<
       volatilityVerdictKeepingPace: 'Keeping Pace with Adoption',
       volatilityVerdictKeepingPaceDesc: 'Community Vibe Score is climbing proportionally alongside external GitHub star growth.',
       volatilityVerdictSentimentLeading: 'Sentiment Leading Adoption',
-      volatilityVerdictSentimentLeadingDesc: 'VibeAtlas community sentiment and swing intensity are moving faster than current star growth.',
+      volatilityVerdictSentimentLeadingDesc: 'W-Vibe community sentiment and swing intensity are moving faster than current star growth.',
       volatilityVerdictAdoptionOutpacing: 'Adoption Outpacing Sentiment',
-      volatilityVerdictAdoptionOutpacingDesc: 'Repository star adoption is accelerating faster than internal VibeAtlas sentiment momentum.',
+      volatilityVerdictAdoptionOutpacingDesc: 'Repository star adoption is accelerating faster than internal W-Vibe sentiment momentum.',
       volatilityVerdictUnsynced: 'GitHub Unsynced',
       volatilityVerdictUnsyncedDesc: 'Internal Vibe Score volatility is tracked live; sync GitHub to overlay real star growth rates.',
       volatilityVerdictBaseline: 'Single Snapshot Baseline',
@@ -2017,10 +2192,33 @@ export const UI_STRINGS: Record<
       insightsEmptyHint: 'Add a Like or Bookmark below to start tracking daily community velocity.',
       insightsAxisCount: 'Count',
       editProject: 'Edit Project',
+      starGrowthTitle: 'Star Growth',
+      starGrowthSubtitle: 'Historical GitHub star trajectory tracked in the W-Vibe daily snapshot store.',
+      starGrowthRange7d: '7D',
+      starGrowthRange30d: '30D',
+      starGrowthRangeAll: 'All',
+      starGrowthModeTotal: 'Total Stars',
+      starGrowthModeDelta: 'Daily Delta',
+      starGrowthKpiCurrent: 'Snapshot Stars',
+      starGrowthKpiNet: 'Period Net Gain',
+      starGrowthKpiAvgDay: 'Avg Daily Pace',
+      starGrowthKpiSnapshots: 'Snapshots',
+      starGrowthDaysSuffix: 'd',
+      starGrowthPerDaySuffix: '/day',
+      starGrowthNoRepo: 'No GitHub repository is linked to track star snapshots.',
+      starGrowthUnsynced: 'No star snapshots recorded yet. Sync GitHub now to capture the baseline.',
+      starGrowthSingleBaseline: 'Single snapshot captured so far. Growth curve builds as multi-day snapshots accumulate.',
+      starGrowthTooltipTotal: 'Snapshot Stars',
+      starGrowthTooltipDelta: 'Daily Delta',
+      starGrowthTooltipCumulative: 'Window Gain',
+      mobileViewToggle: 'Mobile View',
+      mobileViewTitle: 'Mobile View Preview',
+      mobileViewSubtitle: 'Inspect the project live demo wrapped inside a fixed smartphone screen aspect ratio.',
+      mobileViewClose: 'Close Mobile View',
     },
     submit: {
       title: 'Submit a Project',
-      subtitle: 'Publish verifiable metadata to the VibeAtlas directory backed by Firestore.',
+      subtitle: 'Publish verifiable metadata to the W-Vibe directory backed by Firestore.',
       promoPreviewTitle: 'Main Page Promotion Preview',
       promoPreviewSubtitle: 'Once published, your project appears in the Home Launch Showcase with this shareable snippet.',
       promoPreviewUntitled: 'Your AI Project (live preview)',
@@ -2126,8 +2324,57 @@ export const UI_STRINGS: Record<
       changedCountSuffix: 'fields modified',
       closeLabel: 'Close edit modal',
     },
+    mobileDemo: {
+      sectionTitle: 'Mobile App Release & Interactive Demo Studio',
+      sectionSubtitle: 'Configure target OS support, App Store / Google Play links, device simulator frame, and QR mobile test URL.',
+      enableToggleLabel: 'Enable Mobile App / PWA Device Demo',
+      enableToggleHint: 'Web apps and AI tools can also include a mobile viewport simulator and scannable QR link.',
+      targetPlatformsLabel: 'Target Mobile Platforms',
+      quickMobileStackLabel: 'Quick-add Mobile Stack',
+      mobileDemoUrlLabel: 'Interactive Mobile Demo URL (Expo Snack / PWA / Mobile Web)',
+      mobileDemoUrlPlaceholder: 'https://snack.expo.dev/... or https://m.example.com',
+      iosAppStoreLabel: 'App Store / TestFlight URL',
+      iosAppStorePlaceholder: 'https://apps.apple.com/... or https://testflight.apple.com/...',
+      androidPlayStoreLabel: 'Google Play URL',
+      androidPlayStorePlaceholder: 'https://play.google.com/store/apps/details?id=...',
+      mobilePackageUrlLabel: 'Direct Build / APK / IPA / Expo URL',
+      mobilePackageUrlPlaceholder: 'https://expo.dev/... or https://github.com/.../releases',
+      bundleIdLabel: 'Bundle / Package ID',
+      bundleIdPlaceholder: 'com.wvibe.app',
+      minOsLabel: 'Minimum OS',
+      minOsPlaceholder: 'iOS 16+ / Android 13+',
+      devicePresetLabel: 'Default Simulator Frame',
+      orientationLabel: 'Default Orientation',
+      presetIphone: 'iPhone 16',
+      presetPixel: 'Pixel 9',
+      orientationPortrait: 'Portrait',
+      orientationLandscape: 'Landscape',
+      liveSubmitPreviewTitle: 'Live Mobile Device Preview & QR Test',
+      liveSubmitPreviewSubtitle: 'Verify how your mobile simulator and scannable QR card will appear before publishing.',
+      simulatorTitle: 'Interactive Mobile Demo Simulator',
+      simulatorSubtitle: 'Switch device bezels, rotate orientation, and scan the QR code to test directly on your phone.',
+      modeAppCard: 'Interactive App Card',
+      modeLiveFrame: 'Live Web / Expo Frame',
+      openExternalButton: 'Open in New Tab',
+      copyDemoLinkButton: 'Copy Mobile Test Link',
+      copiedLinkLabel: 'Link Copied',
+      iframeFallbackNotice: 'If an external site blocks iframe embedding (X-Frame-Options), switch to App Card view or open in a new tab.',
+      iframeBlockedButton: 'Switch to App Card Preview',
+      qrTitle: 'Test on Your Phone (QR)',
+      qrSubtitleDemo: 'Scan with your phone camera to launch the live mobile demo directly.',
+      qrSubtitleStore: 'Scan with your phone camera to open the store or build download page.',
+      qrSubtitleShare: 'Scan with your phone camera to view this project on W-Vibe.',
+      storeLinksTitle: 'Store & Build Distribution Links',
+      noStoreLinksNote: 'No store or direct build links listed yet.',
+      specsTitle: 'Mobile App Specs',
+      cardBadgeLabel: 'Mobile Demo',
+      previewTabOverview: 'Overview',
+      previewTabFeatures: 'Stack',
+      previewTabRelease: 'Release',
+      previewInteractiveCta: 'Launch Mobile Demo',
+    },
     footer: {
-      tagline: 'VibeAtlas — Verifiable AI, MCP & Skills Index',
+      tagline: 'W-Vibe — Verifiable AI, MCP & Skills Index',
       transparencyNote: 'GitHub stars and internal signals are counted separately.',
     },
     voiceSearch: {
@@ -2145,7 +2392,7 @@ export const UI_STRINGS: Record<
     },
     githubStarsPage: {
       title: 'GitHub Stars Top 100 Leaderboard',
-      subtitle: 'Live top 100 most-starred repositories ranked directly via the GitHub Search REST API, kept separate from internal VibeAtlas signals.',
+      subtitle: 'Live top 100 most-starred repositories ranked directly via the GitHub Search REST API, kept separate from internal W-Vibe signals.',
       refreshButton: 'Refresh Live',
       refreshing: 'Loading...',
       presetAll: 'Global Top 100',
@@ -2169,12 +2416,14 @@ export const UI_STRINGS: Record<
       colForks: 'Forks',
       colStars: 'GitHub Stars',
       colActions: 'Links',
-      openInVibeAtlas: 'VibeAtlas Detail',
+      openInVibeAtlas: 'W-Vibe Detail',
       openGithub: 'GitHub',
       emptyFilteredTitle: 'No repositories match your filter',
       emptyFilteredBody: 'Clear your search query or language filter to inspect the full Top 100 ranking.',
       resetFilterButton: 'Reset Filters',
       errorTitle: 'Unable to load GitHub Top 100 leaderboard',
+      dataUnavailableTitle: 'Data unavailable',
+      dataUnavailableBody: 'The repository ranking service is temporarily unavailable or returned an unexpected HTML page instead of data. Please try again shortly.',
       retryButton: 'Retry',
       rateLimitResetPrefix: 'Rate limit resets around',
       translatingDescriptions: 'Translating repository descriptions...',
@@ -2192,6 +2441,15 @@ export const UI_STRINGS: Record<
       makers: '创作者',
       submit: '提交项目',
       primaryCta: '提交项目',
+      searchPlaceholder: '搜索项目或标签...',
+      searchAriaLabel: '实时搜索项目与标签',
+      searchClear: '清除搜索',
+      searchToggle: '打开搜索',
+      searchProjectsHeading: '匹配项目',
+      searchTagsHeading: '匹配标签',
+      searchTagCountSuffix: '个项目',
+      searchNoResults: '未找到匹配的项目或标签。',
+      searchActionSubmit: '查看全部搜索结果 (Enter)',
     },
     workspace: {
       savedBookmarks: '收藏夹',
@@ -2204,7 +2462,7 @@ export const UI_STRINGS: Record<
       soundOff: '音效静音',
       koreanSearchNoteTitle: '多语言检索说明',
       koreanSearchNoteBody:
-        '常规英文分词器难以切分韩语和东亚粘着语词尾。VibeAtlas 结合不区分大小写的多语言子串匹配与技术术语同义词扩展来提升检索准确度。',
+        '常规英文分词器难以切分韩语和东亚粘着语词尾。W-Vibe 结合不区分大小写的多语言子串匹配与技术术语同义词扩展来提升检索准确度。',
       authErrorClose: '关闭',
       authUnauthorizedTitle: '当前部署域名尚未添加到 Firebase 授权域名列表',
       authUnauthorizedBody:
@@ -2297,7 +2555,7 @@ export const UI_STRINGS: Record<
       recentActivityActionSubmitted: '提交了新项目',
       recentActivityActionLiked: '点赞了',
       recentActivityActionBookmarked: '收藏了',
-      recentActivityCommunityActor: 'VibeAtlas 社区',
+      recentActivityCommunityActor: 'W-Vibe 社区',
       recentActivityGuestActor: '访客用户',
       recentActivityLiveLabel: '实时',
       recentActivityDeltaSuffix: '次近期互动',
@@ -2425,7 +2683,7 @@ export const UI_STRINGS: Record<
       pushedLabel: '最近推送',
       topMoversHeading: '每日增速榜首',
       openGithubButton: '在 GitHub 打开',
-      inspectVibeAtlasButton: '在 VibeAtlas 查看',
+      inspectVibeAtlasButton: '在 W-Vibe 查看',
       loadingLabel: '正在加载活跃 AI 生态仓库...',
       emptyTitle: '当前语言暂无匹配的趋势仓库',
       emptyBody: '重置语言筛选以查看全部 AI 生态活跃仓库气泡图。',
@@ -2460,7 +2718,7 @@ export const UI_STRINGS: Record<
       recencyLabel: '最近活跃',
       todayLabel: '今天',
       daysAgoSuffix: '天前',
-      sourceDirectory: 'VibeAtlas 收录',
+      sourceDirectory: 'W-Vibe 收录',
       sourceEnriched: '目录 + 实时 GitHub',
       sourceEcosystem: 'GitHub AI 生态',
       inspectButton: '查看详情',
@@ -2521,7 +2779,7 @@ export const UI_STRINGS: Record<
       unclaimedBadge: '未认领',
       panelTitleClaimed: '作者所有权已认证',
       panelBodyClaimed:
-        '官方创作者已在 VibeAtlas 完成所有权认领与核验，确保外部链接、开源协议与作者归属信息的真实可靠。',
+        '官方创作者已在 W-Vibe 完成所有权认领与核验，确保外部链接、开源协议与作者归属信息的真实可靠。',
       panelTitlePending: '作者所有权认领审核中',
       panelBodyPending:
         '所有权验证凭证已提交审核。审核通过后，该项目卡片与详情弹窗将展示作者认证徽章。',
@@ -2579,8 +2837,8 @@ export const UI_STRINGS: Record<
     },
     detail: {
       close: '关闭',
-      externalLinksTitle: '外部链接（离开 VibeAtlas）',
-      internalActionsTitle: 'VibeAtlas 站内操作',
+      externalLinksTitle: '外部链接（离开 W-Vibe）',
+      internalActionsTitle: 'W-Vibe 站内操作',
       liveDemo: '在线演示',
       officialWebsite: '官方网站',
       githubRepository: 'GitHub 仓库',
@@ -2599,7 +2857,7 @@ export const UI_STRINGS: Record<
       pricingLabel: '定价模式',
       countryLangLabel: '国家 / 语言',
       historyChartTitle: '近 14 天增长趋势（GitHub 星标 · 站内信号）',
-      historyChartSubtitle: '外部 GitHub 星标增量与 VibeAtlas 站内点赞收藏分开统计绘制。',
+      historyChartSubtitle: '外部 GitHub 星标增量与 W-Vibe 站内点赞收藏分开统计绘制。',
       chartTabStars: 'GitHub 星标',
       chartTabInternal: '站内点赞 · 收藏',
       chartUnsyncedStarsHint: '该 GitHub 仓库尚未同步，立即同步即可查看实时星标数。',
@@ -2635,7 +2893,7 @@ export const UI_STRINGS: Record<
       activityReasonSpam: '垃圾内容',
       activityReasonSecurityConcern: '安全隐患',
       vibeScoreTitle: 'Vibe 指数 · 社区健康度',
-      vibeScoreSubtitle: '基于 VibeAtlas 站内互动、近期活跃动量、验证新鲜度及已同步 GitHub 牵引力的透明 D3 仪表盘。',
+      vibeScoreSubtitle: '基于 W-Vibe 站内互动、近期活跃动量、验证新鲜度及已同步 GitHub 牵引力的透明 D3 仪表盘。',
       vibeScoreOutOf100: '/ 100',
       vibeScoreTierThriving: '活跃旺盛',
       vibeScoreTierActive: '持续活跃',
@@ -2743,6 +3001,29 @@ export const UI_STRINGS: Record<
       insightsEmptyHint: '点击下方点赞或收藏按钮即可实时记录每日社区互动变化。',
       insightsAxisCount: '次数',
       editProject: '编辑项目',
+      starGrowthTitle: '星标增长曲线 (Star Growth)',
+      starGrowthSubtitle: '基于星标快照系统记录的每日 GitHub 星标历史数据绘制趋势。',
+      starGrowthRange7d: '7 天',
+      starGrowthRange30d: '30 天',
+      starGrowthRangeAll: '全部',
+      starGrowthModeTotal: '累计星标',
+      starGrowthModeDelta: '单日增量',
+      starGrowthKpiCurrent: '最新快照星标',
+      starGrowthKpiNet: '区间净增长',
+      starGrowthKpiAvgDay: '日均增长',
+      starGrowthKpiSnapshots: '已记录快照',
+      starGrowthDaysSuffix: '天',
+      starGrowthPerDaySuffix: '/天',
+      starGrowthNoRepo: '未关联 GitHub 仓库，暂无法跟踪星标快照。',
+      starGrowthUnsynced: '尚未记录星标快照。立即同步 GitHub 以生成首条基准快照。',
+      starGrowthSingleBaseline: '当前仅记录单条基准快照，随着跨日同步积累将显示完整增长趋势。',
+      starGrowthTooltipTotal: '记录星标',
+      starGrowthTooltipDelta: '单日变化',
+      starGrowthTooltipCumulative: '区间累计',
+      mobileViewToggle: '手机视图',
+      mobileViewTitle: '手机视图预览',
+      mobileViewSubtitle: '在固定智能手机屏幕比例框架中实时预览项目在线演示。',
+      mobileViewClose: '关闭手机视图',
     },
     submit: {
       title: '提交新项目',
@@ -2852,8 +3133,57 @@ export const UI_STRINGS: Record<
       changedCountSuffix: '项已修改',
       closeLabel: '关闭编辑弹窗',
     },
+    mobileDemo: {
+      sectionTitle: '移动应用发布与交互式演示设置',
+      sectionSubtitle: '配置 iOS / Android / PWA 支持、应用商店链接、设备模拟器边框与二维码真机测试链接。',
+      enableToggleLabel: '启用移动应用 / PWA 设备演示',
+      enableToggleHint: 'Web 应用与 AI 工具也可以附加移动端视口模拟器与扫码测试链接。',
+      targetPlatformsLabel: '目标移动平台',
+      quickMobileStackLabel: '快速添加移动端技术栈',
+      mobileDemoUrlLabel: '交互式移动演示 URL（Expo Snack / PWA / 移动网页）',
+      mobileDemoUrlPlaceholder: 'https://snack.expo.dev/... 或 https://m.example.com',
+      iosAppStoreLabel: 'App Store / TestFlight URL',
+      iosAppStorePlaceholder: 'https://apps.apple.com/... 或 https://testflight.apple.com/...',
+      androidPlayStoreLabel: 'Google Play URL',
+      androidPlayStorePlaceholder: 'https://play.google.com/store/apps/details?id=...',
+      mobilePackageUrlLabel: '安装包 / APK / IPA / Expo URL',
+      mobilePackageUrlPlaceholder: 'https://expo.dev/... 或 https://github.com/.../releases',
+      bundleIdLabel: 'Bundle / 包名 ID',
+      bundleIdPlaceholder: 'com.wvibe.app',
+      minOsLabel: '最低系统版本',
+      minOsPlaceholder: 'iOS 16+ / Android 13+',
+      devicePresetLabel: '默认设备边框',
+      orientationLabel: '默认屏幕方向',
+      presetIphone: 'iPhone 16',
+      presetPixel: 'Pixel 9',
+      orientationPortrait: '竖屏 (Portrait)',
+      orientationLandscape: '横屏 (Landscape)',
+      liveSubmitPreviewTitle: '实时移动设备预览与扫码测试',
+      liveSubmitPreviewSubtitle: '发布前即时预览详情页中的手机模拟器与二维码效果。',
+      simulatorTitle: '交互式移动演示模拟器',
+      simulatorSubtitle: '支持切换机型边框、旋转横竖屏，并可通过手机扫描二维码即时体验。',
+      modeAppCard: '交互式应用卡片',
+      modeLiveFrame: '实时网页 / Expo 视口',
+      openExternalButton: '在新标签页打开',
+      copyDemoLinkButton: '复制移动测试链接',
+      copiedLinkLabel: '已复制链接',
+      iframeFallbackNotice: '若目标网站因 X-Frame-Options 限制无法嵌入，请切换为应用卡片模式或在新标签页打开。',
+      iframeBlockedButton: '切换至应用卡片预览',
+      qrTitle: '手机扫码即时体验 (QR)',
+      qrSubtitleDemo: '使用手机相机扫描，即可直接在手机上打开移动演示。',
+      qrSubtitleStore: '使用手机相机扫描，即可前往应用商店或下载页面。',
+      qrSubtitleShare: '使用手机相机扫描，即可在 W-Vibe 打开项目页面。',
+      storeLinksTitle: '应用商店与构建分发链接',
+      noStoreLinksNote: '暂未填写商店或安装包分发链接。',
+      specsTitle: '移动应用规格',
+      cardBadgeLabel: '移动演示',
+      previewTabOverview: '概览',
+      previewTabFeatures: '技术栈',
+      previewTabRelease: '发布信息',
+      previewInteractiveCta: '打开移动演示',
+    },
     footer: {
-      tagline: 'VibeAtlas — AI · MCP · Skills 目录',
+      tagline: 'W-Vibe — AI · MCP · Skills 目录',
       transparencyNote: 'GitHub 星标与站内互动指标严格分开统计。',
     },
     voiceSearch: {
@@ -2871,7 +3201,7 @@ export const UI_STRINGS: Record<
     },
     githubStarsPage: {
       title: 'GitHub 星标 Top 100 排行榜',
-      subtitle: '基于 GitHub 官方 Search REST API 实时统计星标数前 100 名仓库（与 VibeAtlas 站内点赞收藏严格分离）。',
+      subtitle: '基于 GitHub 官方 Search REST API 实时统计星标数前 100 名仓库（与 W-Vibe 站内点赞收藏严格分离）。',
       refreshButton: '实时刷新',
       refreshing: '加载中...',
       presetAll: '全球 Top 100',
@@ -2895,12 +3225,14 @@ export const UI_STRINGS: Record<
       colForks: 'Forks',
       colStars: 'GitHub 星标',
       colActions: '链接',
-      openInVibeAtlas: 'VibeAtlas 详情',
+      openInVibeAtlas: 'W-Vibe 详情',
       openGithub: 'GitHub',
       emptyFilteredTitle: '没有符合筛选条件的仓库',
       emptyFilteredBody: '请清空搜索关键词或语言筛选以查看完整的 Top 100 榜单。',
       resetFilterButton: '重置筛选',
       errorTitle: '无法加载 GitHub Top 100 排行榜',
+      dataUnavailableTitle: '数据暂不可用',
+      dataUnavailableBody: '排行榜服务暂时不可用或返回了异常响应页面，请稍后重试。',
       retryButton: '重试',
       rateLimitResetPrefix: 'API 配额预计重置时间',
       translatingDescriptions: '正在将仓库简介翻译为中文...',
@@ -2918,6 +3250,15 @@ export const UI_STRINGS: Record<
       makers: 'メイカー',
       submit: '登録',
       primaryCta: 'プロジェクト登録',
+      searchPlaceholder: 'プロジェクト・タグ検索...',
+      searchAriaLabel: 'プロジェクトやタグをリアルタイム検索',
+      searchClear: '検索をクリア',
+      searchToggle: '検索を開く',
+      searchProjectsHeading: '一致するプロジェクト',
+      searchTagsHeading: '一致するタグ',
+      searchTagCountSuffix: '件',
+      searchNoResults: '一致するプロジェクトやタグが見つかりません。',
+      searchActionSubmit: 'すべての検索結果を見る (Enter)',
     },
     workspace: {
       savedBookmarks: 'ブックマーク',
@@ -2930,7 +3271,7 @@ export const UI_STRINGS: Record<
       soundOff: '効果音オフ',
       koreanSearchNoteTitle: '多言語検索について',
       koreanSearchNoteBody:
-        '一般的な英語ステマーは韓国語や日本語・中国語の部分語を適切に分割できません。VibeAtlas は大文字小文字を区別しない多言語部分一致と技術用語の同義語拡張を組み合わせています。',
+        '一般的な英語ステマーは韓国語や日本語・中国語の部分語を適切に分割できません。W-Vibe は大文字小文字を区別しない多言語部分一致と技術用語の同義語拡張を組み合わせています。',
       authErrorClose: '閉じる',
       authUnauthorizedTitle: 'このデプロイ先ドメインは Firebase 認証の承認済みドメインに未登録です',
       authUnauthorizedBody:
@@ -3023,7 +3364,7 @@ export const UI_STRINGS: Record<
       recentActivityActionSubmitted: 'が新規投稿しました',
       recentActivityActionLiked: 'にいいねしました',
       recentActivityActionBookmarked: 'をブックマークしました',
-      recentActivityCommunityActor: 'VibeAtlas コミュニティ',
+      recentActivityCommunityActor: 'W-Vibe コミュニティ',
       recentActivityGuestActor: 'ゲスト',
       recentActivityLiveLabel: 'ライブ',
       recentActivityDeltaSuffix: '件の反応',
@@ -3134,7 +3475,7 @@ export const UI_STRINGS: Record<
       switchToSignalButton: 'コミュニティ成長速度を表示',
       emptyFilteredTitle: '現在のフィルターに一致する成長データがありません',
       emptyFilteredBody: 'フィルター条件を緩めると、急上昇プロジェクトの成長速度グラフが表示されます。',
-      fallbackNote: '複数日の GitHub スター履歴が蓄積されるまで、検証済み VibeAtlas 内部成長速度を表示しています。',
+      fallbackNote: '複数日の GitHub スター履歴が蓄積されるまで、検証済み W-Vibe 内部成長速度を表示しています。',
     },
     githubTrendingBubble: {
       title: 'GitHub Trending · AI エコシステム',
@@ -3151,7 +3492,7 @@ export const UI_STRINGS: Record<
       pushedLabel: '最終プッシュ',
       topMoversHeading: '日別上位リポジトリ',
       openGithubButton: 'GitHub で開く',
-      inspectVibeAtlasButton: 'VibeAtlas で詳細を見る',
+      inspectVibeAtlasButton: 'W-Vibe で詳細を見る',
       loadingLabel: 'アクティブな AI エコシステムリポジトリを読み込み中...',
       emptyTitle: '該当言語のトレンドリポジトリはありません',
       emptyBody: '言語フィルターをリセットすると AI エコシステム全体のバブルが表示されます。',
@@ -3186,7 +3527,7 @@ export const UI_STRINGS: Record<
       recencyLabel: '最終活動',
       todayLabel: '今日',
       daysAgoSuffix: '日前',
-      sourceDirectory: 'VibeAtlas 登録',
+      sourceDirectory: 'W-Vibe 登録',
       sourceEnriched: 'ディレクトリ + リアルタイム GitHub',
       sourceEcosystem: 'GitHub AI エコシステム',
       inspectButton: '詳細を見る',
@@ -3247,7 +3588,7 @@ export const UI_STRINGS: Record<
       unclaimedBadge: '未認証',
       panelTitleClaimed: 'メイカー所有権 認証済み',
       panelBodyClaimed:
-        '公式メイカーが VibeAtlas 上で所有権を認証済みです。外部リンクやライセンス表記、制作者情報の信頼性が確認されています。',
+        '公式メイカーが W-Vibe 上で所有権を認証済みです。外部リンクやライセンス表記、制作者情報の信頼性が確認されています。',
       panelTitlePending: 'メイカー所有権 認証審査中',
       panelBodyPending:
         '所有権の認証申請が提出され確認中です。承認されるとカードおよび詳細モーダルにメイカー認証バッジが表示されます。',
@@ -3306,7 +3647,7 @@ export const UI_STRINGS: Record<
     detail: {
       close: '閉じる',
       externalLinksTitle: '外部リンク（外部サイトへ移動）',
-      internalActionsTitle: 'VibeAtlas 内部アクション',
+      internalActionsTitle: 'W-Vibe 内部アクション',
       liveDemo: 'ライブデモ',
       officialWebsite: '公式サイト',
       githubRepository: 'GitHub リポジトリ',
@@ -3325,7 +3666,7 @@ export const UI_STRINGS: Record<
       pricingLabel: '料金プラン',
       countryLangLabel: '国 / 言語',
       historyChartTitle: '過去 14 日間の成長推移（GitHub スター・内部指標）',
-      historyChartSubtitle: '外部 GitHub スターと VibeAtlas 内部のいいね・ブックマークは別軸で表示されます。',
+      historyChartSubtitle: '外部 GitHub スターと W-Vibe 内部のいいね・ブックマークは別軸で表示されます。',
       chartTabStars: 'GitHub スター',
       chartTabInternal: '内部いいね・ブックマーク',
       chartUnsyncedStarsHint: 'GitHub リポジトリが未同期です。同期するとリアルタイムスター数が表示されます。',
@@ -3361,7 +3702,7 @@ export const UI_STRINGS: Record<
       activityReasonSpam: 'スパム',
       activityReasonSecurityConcern: 'セキュリティ上の懸念',
       vibeScoreTitle: 'Vibe スコア · コミュニティ健全度',
-      vibeScoreSubtitle: 'VibeAtlas 内部エンゲージメント・直近モメンタム・検証鮮度・同期済み GitHub 指標に基づく D3 ゲージです。',
+      vibeScoreSubtitle: 'W-Vibe 内部エンゲージメント・直近モメンタム・検証鮮度・同期済み GitHub 指標に基づく D3 ゲージです。',
       vibeScoreOutOf100: '/ 100',
       vibeScoreTierThriving: '高活性 (Thriving)',
       vibeScoreTierActive: '活発 (Active)',
@@ -3434,7 +3775,7 @@ export const UI_STRINGS: Record<
       volatilityVerdictSentimentLeading: 'コミュニティ期待が先行',
       volatilityVerdictSentimentLeadingDesc: '内部の注目度やスコア変動が現在のリポジトリスター成長速度を上回っています。',
       volatilityVerdictAdoptionOutpacing: '技術採用がコミュニティを上回る',
-      volatilityVerdictAdoptionOutpacingDesc: 'GitHub スターの伸びが VibeAtlas 内部のコミュニティ勢いよりも速く進んでいます。',
+      volatilityVerdictAdoptionOutpacingDesc: 'GitHub スターの伸びが W-Vibe 内部のコミュニティ勢いよりも速く進んでいます。',
       volatilityVerdictUnsynced: 'GitHub 未同期',
       volatilityVerdictUnsyncedDesc: '内部 Vibe 変動のみ追跡中です。GitHub を同期すると実測スター成長率を重ねて比較できます。',
       volatilityVerdictBaseline: '初回スナップショット基準',
@@ -3469,6 +3810,29 @@ export const UI_STRINGS: Record<
       insightsEmptyHint: '下のいいねまたはブックマークを押すと、日次のコミュニティ推移が即座に反映されます。',
       insightsAxisCount: '件数',
       editProject: 'プロジェクトを編集',
+      starGrowthTitle: 'スター成長推移 (Star Growth)',
+      starGrowthSubtitle: 'スタースナップショットシステムに記録された GitHub スターの履歴推移を可視化します。',
+      starGrowthRange7d: '7日間',
+      starGrowthRange30d: '30日間',
+      starGrowthRangeAll: '全期間',
+      starGrowthModeTotal: '累計スター',
+      starGrowthModeDelta: '日次増減',
+      starGrowthKpiCurrent: '最新スナップショット',
+      starGrowthKpiNet: '期間純増',
+      starGrowthKpiAvgDay: '日平均ペース',
+      starGrowthKpiSnapshots: '記録スナップショット',
+      starGrowthDaysSuffix: '日',
+      starGrowthPerDaySuffix: '/日',
+      starGrowthNoRepo: 'GitHub リポジトリが未設定のためスタースナップショットを追跡できません。',
+      starGrowthUnsynced: 'スナップショットがまだありません。今すぐ GitHub 同期して基準値を記録してください。',
+      starGrowthSingleBaseline: '現在は単一スナップショットのみ記録されています。複数日の記録が蓄積すると成長曲線が表示されます。',
+      starGrowthTooltipTotal: '記録スター数',
+      starGrowthTooltipDelta: '前日比',
+      starGrowthTooltipCumulative: '期間累計',
+      mobileViewToggle: 'モバイルビュー',
+      mobileViewTitle: 'モバイルビュープレビュー',
+      mobileViewSubtitle: '固定スマートフォン画面比率フレーム内でプロジェクトのライブデモを確認します。',
+      mobileViewClose: 'モバイルビューを閉じる',
     },
     submit: {
       title: '新しいプロジェクトを登録',
@@ -3578,8 +3942,57 @@ export const UI_STRINGS: Record<
       changedCountSuffix: '件の変更',
       closeLabel: '編集モーダルを閉じる',
     },
+    mobileDemo: {
+      sectionTitle: 'モバイルアプリ公開 & インタラクティブデモ設定',
+      sectionSubtitle: 'iOS・Android・PWA 対応情報、ストアURL、デバイスシミュレーター、QRテストリンクを設定します。',
+      enableToggleLabel: 'モバイルアプリ / PWA デバイスデモを有効にする',
+      enableToggleHint: 'WebアプリやAIツールでも、モバイルプレビュー枠とQRテストリンクを併設できます。',
+      targetPlatformsLabel: '対応モバイルOS / 環境',
+      quickMobileStackLabel: 'モバイル技術スタックを素早く追加',
+      mobileDemoUrlLabel: 'インタラクティブモバイルデモ URL (Expo Snack / PWA / モバイルWeb)',
+      mobileDemoUrlPlaceholder: 'https://snack.expo.dev/... または https://m.example.com',
+      iosAppStoreLabel: 'App Store / TestFlight URL',
+      iosAppStorePlaceholder: 'https://apps.apple.com/... または https://testflight.apple.com/...',
+      androidPlayStoreLabel: 'Google Play URL',
+      androidPlayStorePlaceholder: 'https://play.google.com/store/apps/details?id=...',
+      mobilePackageUrlLabel: 'ビルド / APK / IPA / Expo URL',
+      mobilePackageUrlPlaceholder: 'https://expo.dev/... または https://github.com/.../releases',
+      bundleIdLabel: 'Bundle / パッケージID',
+      bundleIdPlaceholder: 'com.wvibe.app',
+      minOsLabel: '最小OS要件',
+      minOsPlaceholder: 'iOS 16+ / Android 13+',
+      devicePresetLabel: '初期デバイスフレーム',
+      orientationLabel: '初期画面向き',
+      presetIphone: 'iPhone 16',
+      presetPixel: 'Pixel 9',
+      orientationPortrait: '縦向き (Portrait)',
+      orientationLandscape: '横向き (Landscape)',
+      liveSubmitPreviewTitle: 'リアルタイムモバイルプレビュー & QRテスト',
+      liveSubmitPreviewSubtitle: '公開前に詳細モーダルのモバイルシミュレーター表示を即座に確認できます。',
+      simulatorTitle: 'インタラクティブモバイルデモシミュレーター',
+      simulatorSubtitle: 'デバイス枠の切り替え、縦横回転、スマホ用QRコードでの実機テストに対応しています。',
+      modeAppCard: 'インタラクティブカード',
+      modeLiveFrame: 'ライブ Web / Expo フレーム',
+      openExternalButton: '新しいタブで開く',
+      copyDemoLinkButton: 'モバイルテストURLをコピー',
+      copiedLinkLabel: 'コピーしました',
+      iframeFallbackNotice: '外部サイトの X-Frame-Options 制限により埋め込みできない場合は、カード表示または新しいタブで開くをご利用ください。',
+      iframeBlockedButton: 'カードプレビューに切替',
+      qrTitle: 'スマホで実機テスト (QR)',
+      qrSubtitleDemo: 'カメラでスキャンすると、ライブモバイルデモをスマホで直接開けます。',
+      qrSubtitleStore: 'カメラでスキャンすると、ストアまたはビルド配布ページを開きます。',
+      qrSubtitleShare: 'カメラでスキャンすると、W-Vibe のプロジェクトページを開きます。',
+      storeLinksTitle: 'ストア & ビルド配布リンク',
+      noStoreLinksNote: 'ストアまたは直接ビルドURLはまだ登録されていません。',
+      specsTitle: 'モバイルアプリ仕様',
+      cardBadgeLabel: 'モバイルデモ',
+      previewTabOverview: '概要',
+      previewTabFeatures: '技術スタック',
+      previewTabRelease: 'リリース情報',
+      previewInteractiveCta: 'モバイルデモを開く',
+    },
     footer: {
-      tagline: 'VibeAtlas — AI · MCP · Skills ディレクトリ',
+      tagline: 'W-Vibe — AI · MCP · Skills ディレクトリ',
       transparencyNote: 'GitHub スターと内部指標は常に分離集計されます。',
     },
     voiceSearch: {
@@ -3597,7 +4010,7 @@ export const UI_STRINGS: Record<
     },
     githubStarsPage: {
       title: 'GitHub スター Top 100 ランキング',
-      subtitle: 'GitHub 公式 Search REST API に基づくスター数上位 100 リポジトリのリアルタイム集計（VibeAtlas 内部評価とは別集計）。',
+      subtitle: 'GitHub 公式 Search REST API に基づくスター数上位 100 リポジトリのリアルタイム集計（W-Vibe 内部評価とは別集計）。',
       refreshButton: '最新に更新',
       refreshing: '読み込み中...',
       presetAll: '世界 Top 100',
@@ -3621,12 +4034,14 @@ export const UI_STRINGS: Record<
       colForks: 'Forks',
       colStars: 'GitHub スター',
       colActions: 'リンク',
-      openInVibeAtlas: 'VibeAtlas 詳細',
+      openInVibeAtlas: 'W-Vibe 詳細',
       openGithub: 'GitHub',
       emptyFilteredTitle: '条件に一致するリポジトリがありません',
       emptyFilteredBody: '検索キーワードや言語フィルターをリセットして Top 100 全体を確認してください。',
       resetFilterButton: 'フィルターをリセット',
       errorTitle: 'GitHub Top 100 ランキングを読み込めませんでした',
+      dataUnavailableTitle: 'データを利用できません',
+      dataUnavailableBody: 'ランキングサービスが一時的に利用できないか、予期しない応答ページが返されました。しばらくしてから再試行してください。',
       retryButton: '再試行',
       rateLimitResetPrefix: 'API 制限リセット予定',
       translatingDescriptions: 'リポジトリの説明を日本語に翻訳中...',
@@ -3641,6 +4056,7 @@ export const UI_STRINGS: Record<
 export const CONTENT_TYPE_LABELS: Record<AppLanguage, Record<ContentType, string>> = {
   ko: {
     web_app: '웹 애플리케이션',
+    mobile_app: '모바일 앱',
     ai_tool: 'AI 툴',
     mcp_server: 'MCP 서버',
     ai_skill: 'AI Skills',
@@ -3650,6 +4066,7 @@ export const CONTENT_TYPE_LABELS: Record<AppLanguage, Record<ContentType, string
   },
   en: {
     web_app: 'Web Apps',
+    mobile_app: 'Mobile Apps',
     ai_tool: 'AI Tools',
     mcp_server: 'MCP Servers',
     ai_skill: 'AI Skills',
@@ -3659,6 +4076,7 @@ export const CONTENT_TYPE_LABELS: Record<AppLanguage, Record<ContentType, string
   },
   zh: {
     web_app: 'Web 应用',
+    mobile_app: '移动应用',
     ai_tool: 'AI 工具',
     mcp_server: 'MCP 服务器',
     ai_skill: 'AI Skills',
@@ -3668,6 +4086,7 @@ export const CONTENT_TYPE_LABELS: Record<AppLanguage, Record<ContentType, string
   },
   ja: {
     web_app: 'Web アプリ',
+    mobile_app: 'モバイルアプリ',
     ai_tool: 'AI ツール',
     mcp_server: 'MCP サーバー',
     ai_skill: 'AI Skills',
@@ -3684,6 +4103,7 @@ export const PROJECT_CATEGORY_LABELS: Record<AppLanguage, Record<ProjectCategory
     Framework: '프레임워크',
     'MCP Server': 'MCP 서버',
     'Web Tool': '웹 툴',
+    'Mobile App': '모바일 앱',
     'AI Skills': 'AI Skills',
     'Developer Tools': '개발자 도구',
     Workflow: '워크플로우',
@@ -3698,6 +4118,7 @@ export const PROJECT_CATEGORY_LABELS: Record<AppLanguage, Record<ProjectCategory
     Framework: 'Framework',
     'MCP Server': 'MCP Server',
     'Web Tool': 'Web Tool',
+    'Mobile App': 'Mobile App',
     'AI Skills': 'AI Skills',
     'Developer Tools': 'Developer Tools',
     Workflow: 'Workflow',
@@ -3712,6 +4133,7 @@ export const PROJECT_CATEGORY_LABELS: Record<AppLanguage, Record<ProjectCategory
     Framework: '开发框架',
     'MCP Server': 'MCP 服务器',
     'Web Tool': 'Web 工具',
+    'Mobile App': '移动应用',
     'AI Skills': 'AI Skills',
     'Developer Tools': '开发工具',
     Workflow: '工作流',
@@ -3726,6 +4148,7 @@ export const PROJECT_CATEGORY_LABELS: Record<AppLanguage, Record<ProjectCategory
     Framework: 'フレームワーク',
     'MCP Server': 'MCP サーバー',
     'Web Tool': 'Web ツール',
+    'Mobile App': 'モバイルアプリ',
     'AI Skills': 'AI Skills',
     'Developer Tools': '開発ツール',
     Workflow: 'ワークフロー',
@@ -3808,8 +4231,8 @@ export const SORT_LABELS: Record<AppLanguage, Record<SortOption, string>> = {
     trending_7d: '트렌딩 7일',
     trending_30d: '트렌딩 30일',
     most_starred: 'GitHub 스타순',
-    most_liked: 'VibeAtlas 좋아요순',
-    most_bookmarked: 'VibeAtlas 북마크순',
+    most_liked: 'W-Vibe 좋아요순',
+    most_bookmarked: 'W-Vibe 북마크순',
     recently_added: '최신 등록순',
     recently_updated: '최근 업데이트순',
   },
@@ -3819,7 +4242,7 @@ export const SORT_LABELS: Record<AppLanguage, Record<SortOption, string>> = {
     trending_7d: 'Trending 7d',
     trending_30d: 'Trending 30d',
     most_starred: 'Most Starred (GitHub)',
-    most_liked: 'Most Liked (VibeAtlas)',
+    most_liked: 'Most Liked (W-Vibe)',
     most_bookmarked: 'Most Bookmarked',
     recently_added: 'Recently Added',
     recently_updated: 'Recently Updated',
@@ -3830,7 +4253,7 @@ export const SORT_LABELS: Record<AppLanguage, Record<SortOption, string>> = {
     trending_7d: '7 天趋势',
     trending_30d: '30 天趋势',
     most_starred: 'GitHub 星标最多',
-    most_liked: 'VibeAtlas 点赞最多',
+    most_liked: 'W-Vibe 点赞最多',
     most_bookmarked: '收藏最多',
     recently_added: '最新收录',
     recently_updated: '最近更新',
@@ -3841,7 +4264,7 @@ export const SORT_LABELS: Record<AppLanguage, Record<SortOption, string>> = {
     trending_7d: 'トレンド 7日間',
     trending_30d: 'トレンド 30日間',
     most_starred: 'GitHub スター順',
-    most_liked: 'VibeAtlas いいね順',
+    most_liked: 'W-Vibe いいね順',
     most_bookmarked: 'ブックマーク順',
     recently_added: '新着順',
     recently_updated: '更新日順',

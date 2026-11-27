@@ -40,3 +40,11 @@ test('firestore.rules validates ProjectMilestone creator logs and enforces proje
   assert.match(rulesSource, /allow update: if false;/);
 });
 
+test('firestore.rules supports mobile_app contentType and validates optional mobileConfig strictly', () => {
+  assert.match(rulesSource, /'mobile_app'/);
+  assert.match(rulesSource, /function isValidMobileConfig\(cfg\)/);
+  assert.match(rulesSource, /function isValidMobilePlatforms\(arr\)/);
+  assert.match(rulesSource, /\(!\('mobileConfig' in data\) \|\| isValidMobileConfig\(data\.mobileConfig\)\)/);
+  assert.match(rulesSource, /'mobileConfig', 'updatedAt'/);
+});
+

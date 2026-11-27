@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Heart,
   Link2,
+  Smartphone,
 } from 'lucide-react';
 import type {
   ActivePage,
@@ -23,7 +24,11 @@ import {
   type PromoCopyTone,
   type PromoShowcaseFilter,
 } from '../lib/submissionPromotion';
-import { sanitizeExternalUrl } from '../lib/validation';
+import {
+  formatMobilePlatformsSummary,
+  hasMobileDemoSupport,
+  resolvePrimaryMobilePreviewUrl,
+} from '../lib/mobileAppDemo';
 import { MakerVerificationBadge } from './MakerVerificationBadge';
 import { PastelCategoryIcon } from './PastelCategoryIcon';
 
@@ -109,7 +114,7 @@ export function SubmissionPromoShowcase({
     ? buildPromotionCopy(activeEntry.project, language, activeShareUrl, tone)
     : '';
   const activeSafeDemo = activeEntry
-    ? sanitizeExternalUrl(activeEntry.project.liveDemoUrl)
+    ? resolvePrimaryMobilePreviewUrl(activeEntry.project)
     : '';
 
   const filterTabs: Array<{ id: PromoShowcaseFilter; label: string }> = [
@@ -221,8 +226,13 @@ export function SubmissionPromoShowcase({
                 const isLiked = likedIds.has(project.id);
                 const tagline =
                   language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
-                const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
+                const safeDemo = resolvePrimaryMobilePreviewUrl(project);
                 const makerVerification = resolveMakerVerification(project, userClaims);
+                const showMobileInfo = hasMobileDemoSupport(project);
+                const mobilePlatformsText = formatMobilePlatformsSummary(
+                  project.mobileConfig?.platforms ?? [],
+                  language
+                );
 
                 return (
                   <div
@@ -255,6 +265,17 @@ export function SubmissionPromoShowcase({
                           <span>{typeLabels[project.contentType]}</span>
                           <span aria-hidden="true">·</span>
                           <span>{PLATFORM_LABELS[project.developmentPlatform]}</span>
+                          {showMobileInfo && (
+                            <>
+                              <span aria-hidden="true">·</span>
+                              <span className="inline-flex items-center gap-1 font-medium text-cyan-700 dark:text-cyan-400">
+                                <Smartphone className="h-3 w-3 shrink-0" aria-hidden="true" />
+                                <span>
+                                  {mobilePlatformsText || UI_STRINGS[language].mobileDemo.cardBadgeLabel}
+                                </span>
+                              </span>
+                            </>
+                          )}
                           {entry.launchDateShort && (
                             <>
                               <span aria-hidden="true">·</span>

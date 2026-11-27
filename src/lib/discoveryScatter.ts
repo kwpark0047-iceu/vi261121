@@ -102,6 +102,7 @@ export const CONTENT_TYPE_ORDER: readonly ContentType[] = [
   'mcp_server',
   'ai_tool',
   'web_app',
+  'mobile_app',
   'open_source',
   'ai_skill',
   'template',
@@ -125,6 +126,10 @@ export function getScatterTypeColor(type: ContentType, isDark: boolean): Scatter
       return isDark
         ? { fill: 'rgba(52, 211, 153, 0.78)', stroke: '#a7f3d0', dot: '#34d399' }
         : { fill: 'rgba(5, 150, 105, 0.78)', stroke: '#064e3b', dot: '#059669' };
+    case 'mobile_app':
+      return isDark
+        ? { fill: 'rgba(34, 211, 238, 0.78)', stroke: '#a5f3fc', dot: '#22d3ee' }
+        : { fill: 'rgba(8, 145, 178, 0.78)', stroke: '#164e63', dot: '#0891b2' };
     case 'open_source':
       return isDark
         ? { fill: 'rgba(167, 139, 250, 0.78)', stroke: '#ddd6fe', dot: '#a78bfa' }
@@ -165,6 +170,15 @@ export function inferContentTypeFromGitHubRepo(
     haystack.includes('boilerplate')
   ) {
     return 'template';
+  }
+  if (
+    haystack.includes('react-native') ||
+    haystack.includes('flutter') ||
+    haystack.includes('expo') ||
+    haystack.includes('swiftui') ||
+    haystack.includes('mobile-app')
+  ) {
+    return 'mobile_app';
   }
   if (
     haystack.includes('webapp') ||

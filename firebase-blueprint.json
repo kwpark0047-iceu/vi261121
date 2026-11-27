@@ -44,6 +44,7 @@
           "type": "string",
           "enum": [
             "web_app",
+            "mobile_app",
             "ai_tool",
             "mcp_server",
             "ai_skill",
@@ -176,6 +177,10 @@
           "type": "string",
           "format": "date-time",
           "maxLength": 64
+        },
+        "mobileConfig": {
+          "type": "object",
+          "description": "Optional mobile app configuration with platforms (up to 3 of ios, android, pwa), mobileDemoUrl (maxLength 500), iosAppStoreUrl (maxLength 500), androidPlayStoreUrl (maxLength 500), mobilePackageUrl (maxLength 500), bundleId (maxLength 120), minOsVersion (maxLength 64), devicePreset (iphone_16 or pixel_9), and orientation (portrait or landscape)."
         },
         "createdAt": {
           "type": "string",

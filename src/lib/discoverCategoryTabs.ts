@@ -14,6 +14,7 @@ export type DiscoverCategoryTabId =
   | 'ai_agent'
   | 'ai_tool'
   | 'web_app'
+  | 'mobile_app'
   | 'ai_skills'
   | 'workflow'
   | 'cli_tool'
@@ -90,6 +91,18 @@ export const DISCOVER_CATEGORY_TABS: ReadonlyArray<DiscoverCategoryTabDef> = [
       en: 'Web App',
       zh: 'Web 应用',
       ja: 'Web アプリ',
+    },
+  },
+  {
+    id: 'mobile_app',
+    typeFilter: 'mobile_app',
+    categoryFilter: 'all',
+    tone: 'aqua',
+    labels: {
+      ko: '모바일 앱',
+      en: 'Mobile App',
+      zh: '移动应用',
+      ja: 'モバイルアプリ',
     },
   },
   {
@@ -193,6 +206,7 @@ export const DISCOVER_CATEGORY_TABS: ReadonlyArray<DiscoverCategoryTabDef> = [
 const CATEGORY_TO_TAB_ID: Partial<Record<ProjectCategory, DiscoverCategoryTabId>> = {
   'MCP Server': 'mcp',
   'AI Agent': 'ai_agent',
+  'Mobile App': 'mobile_app',
   'AI Skills': 'ai_skills',
   Workflow: 'workflow',
   'CLI Tool': 'cli_tool',
@@ -207,6 +221,7 @@ const TYPE_TO_TAB_ID: Partial<Record<ContentType, DiscoverCategoryTabId>> = {
   ai_agent: 'ai_agent',
   ai_tool: 'ai_tool',
   web_app: 'web_app',
+  mobile_app: 'mobile_app',
   ai_skill: 'ai_skills',
   template: 'templates',
   open_source: 'open_source',

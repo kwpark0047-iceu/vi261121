@@ -4,6 +4,9 @@ import type {
   ContentType,
   DevelopmentPlatform,
   HostingProvider,
+  MobileDemoOrientation,
+  MobileDevicePreset,
+  MobileTargetPlatform,
   PricingModel,
 } from '../types/vibeatlas';
 
@@ -32,6 +35,16 @@ export interface SubmitProjectDraftFields {
   githubUrl: string;
   makerName: string;
   makerHandle: string;
+  enableMobileDemo: boolean;
+  mobilePlatforms: MobileTargetPlatform[];
+  mobileDemoUrl: string;
+  iosAppStoreUrl: string;
+  androidPlayStoreUrl: string;
+  mobilePackageUrl: string;
+  mobileBundleId: string;
+  mobileMinOsVersion: string;
+  mobileDevicePreset: MobileDevicePreset;
+  mobileOrientation: MobileDemoOrientation;
 }
 
 export const DEFAULT_SUBMIT_DRAFT_FIELDS: SubmitProjectDraftFields = {
@@ -56,6 +69,16 @@ export const DEFAULT_SUBMIT_DRAFT_FIELDS: SubmitProjectDraftFields = {
   githubUrl: '',
   makerName: '',
   makerHandle: '',
+  enableMobileDemo: false,
+  mobilePlatforms: ['ios', 'android'],
+  mobileDemoUrl: '',
+  iosAppStoreUrl: '',
+  androidPlayStoreUrl: '',
+  mobilePackageUrl: '',
+  mobileBundleId: '',
+  mobileMinOsVersion: '',
+  mobileDevicePreset: 'iphone_16',
+  mobileOrientation: 'portrait',
 };
 
 const draftFieldsSchema = z.object({
@@ -67,6 +90,7 @@ const draftFieldsSchema = z.object({
   descriptionKo: z.string().max(6000),
   contentType: z.enum([
     'web_app',
+    'mobile_app',
     'ai_tool',
     'mcp_server',
     'ai_skill',
@@ -116,6 +140,16 @@ const draftFieldsSchema = z.object({
   githubUrl: z.string().max(500),
   makerName: z.string().max(120),
   makerHandle: z.string().max(120),
+  enableMobileDemo: z.boolean().default(false),
+  mobilePlatforms: z.array(z.enum(['ios', 'android', 'pwa'])).max(3).default(['ios', 'android']),
+  mobileDemoUrl: z.string().max(500).default(''),
+  iosAppStoreUrl: z.string().max(500).default(''),
+  androidPlayStoreUrl: z.string().max(500).default(''),
+  mobilePackageUrl: z.string().max(500).default(''),
+  mobileBundleId: z.string().max(120).default(''),
+  mobileMinOsVersion: z.string().max(64).default(''),
+  mobileDevicePreset: z.enum(['iphone_16', 'pixel_9']).default('iphone_16'),
+  mobileOrientation: z.enum(['portrait', 'landscape']).default('portrait'),
 });
 
 export interface StorageLike {
@@ -141,6 +175,14 @@ export function hasMeaningfulDraftChanges(
     if (key === 'makerName') {
       const trimmed = fields.makerName.trim();
       if (trimmed !== '' && trimmed !== userDefaultMakerName.trim()) {
+        return true;
+      }
+      continue;
+    }
+    if (key === 'mobilePlatforms') {
+      if (
+        fields.mobilePlatforms.join(',') !== DEFAULT_SUBMIT_DRAFT_FIELDS.mobilePlatforms.join(',')
+      ) {
         return true;
       }
       continue;

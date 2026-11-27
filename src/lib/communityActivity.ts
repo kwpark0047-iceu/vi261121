@@ -145,7 +145,7 @@ export function mergeAndSortCommunityActivities(params: {
       actorName:
         currentUserLabel && currentUserLabel.uid === rep.reporterUid
           ? currentUserLabel.name
-          : 'VibeAtlas Member',
+          : 'W-Vibe Member',
       actorHandle:
         currentUserLabel && currentUserLabel.uid === rep.reporterUid ? currentUserLabel.handle : '',
       type: 'report',

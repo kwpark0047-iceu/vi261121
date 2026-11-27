@@ -29,6 +29,11 @@ import {
   needsDescriptionTranslation,
   resolveDisplayedRepoDescription,
 } from '../lib/repoDescriptionTranslator';
+import {
+  fetchTopStarredRepos,
+  GitHubApiClientError,
+  translateRepoDescriptionsSafely,
+} from '../lib/githubApiClient';
 import { sanitizeExternalUrl } from '../lib/validation';
 import { playUiSound } from '../lib/soundEffects';
 import { useVoiceSearch } from '../hooks/useVoiceSearch';
@@ -39,15 +44,6 @@ interface GitHubStarsPageProps {
   language: AppLanguage;
   catalogProjects: CatalogProject[];
   onOpenDetail: (project: CatalogProject) => void;
-}
-
-interface TopStarredApiResponse {
-  preset: GitHubTopRepoPreset;
-  fetchedAt: string;
-  staleCache?: boolean;
-  items: GitHubRankedRepo[];
-  error?: string;
-  resetAtIso?: string | null;
 }
 
 export function GitHubStarsPage({
@@ -61,6 +57,7 @@ export function GitHubStarsPage({
   const [staleCache, setStaleCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isUnavailable, setIsUnavailable] = useState(false);
   const [resetAtIso, setResetAtIso] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [languageFilter, setLanguageFilter] = useState('all');
@@ -90,26 +87,36 @@ export function GitHubStarsPage({
     async (targetPreset: GitHubTopRepoPreset, forceRefresh: boolean, signal?: AbortSignal) => {
       setLoading(true);
       setErrorMsg(null);
+      setIsUnavailable(false);
       setResetAtIso(null);
+      setFetchedAt('');
+      setStaleCache(false);
+      setTranslationError(null);
       try {
-        const refreshParam = forceRefresh ? '&refresh=1' : '';
-        const resp = await fetch(
-          `/api/github/top-starred?preset=${encodeURIComponent(targetPreset)}${refreshParam}`,
-          { signal }
-        );
-        const data = (await resp.json()) as TopStarredApiResponse;
-        if (!resp.ok) {
-          setErrorMsg(data.error || `Request failed with status ${resp.status}`);
-          setResetAtIso(data.resetAtIso ?? null);
-          setItems([]);
-          return;
-        }
-        setItems(Array.isArray(data.items) ? data.items : []);
+        const data = await fetchTopStarredRepos(targetPreset, {
+          forceRefresh,
+          signal,
+        });
+        const nextItems = Array.isArray(data.items) ? data.items : [];
+        setItems(nextItems);
         setFetchedAt(data.fetchedAt || new Date().toISOString());
         setStaleCache(Boolean(data.staleCache));
+        if (nextItems.length === 0) {
+          setIsUnavailable(true);
+        }
       } catch (err) {
         if (err instanceof DOMException && err.name === 'AbortError') return;
-        setErrorMsg(err instanceof Error ? err.message : 'Network error loading leaderboard.');
+        if (err instanceof GitHubApiClientError) {
+          if (err.errorCode === 'DATA_UNAVAILABLE') {
+            setIsUnavailable(true);
+            setErrorMsg(null);
+          } else {
+            setErrorMsg(err.message);
+          }
+          setResetAtIso(err.resetAtIso);
+        } else {
+          setErrorMsg(err instanceof Error ? err.message : 'Network error loading leaderboard.');
+        }
         setItems([]);
       } finally {
         if (!signal?.aborted) {
@@ -166,21 +173,15 @@ export function GitHubStarsPage({
     ): Promise<{ ok: boolean; status: number; errorCode?: string; error?: string; translatedCount: number }> => {
       for (let attempt = 0; attempt < 2; attempt += 1) {
         if (cancelled) return { ok: true, status: 200, translatedCount: 0 };
-        const resp = await fetch('/api/github/translate-descriptions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ targetLanguage: language, items: batch }),
+        const outcome = await translateRepoDescriptionsSafely({
+          targetLanguage: language,
+          items: batch,
           signal: controller.signal,
         });
-        const data = (await resp.json()) as {
-          translations?: Record<string, string>;
-          error?: string;
-          errorCode?: string;
-        };
 
         const validEntries: Array<[number, string]> = [];
-        if (data.translations && Object.keys(data.translations).length > 0) {
-          for (const [idStr, text] of Object.entries(data.translations)) {
+        if (outcome.translations && Object.keys(outcome.translations).length > 0) {
+          for (const [idStr, text] of Object.entries(outcome.translations)) {
             const numId = Number(idStr);
             if (Number.isFinite(numId) && typeof text === 'string' && text.trim()) {
               validEntries.push([numId, text.trim()]);
@@ -198,18 +199,20 @@ export function GitHubStarsPage({
         }
         const applied = validEntries.length;
 
-        if (resp.ok) {
-          return { ok: true, status: resp.status, translatedCount: applied };
+        if (outcome.ok) {
+          return { ok: true, status: outcome.status, translatedCount: applied };
         }
 
-        const isTransient = resp.status === 429 || resp.status >= 500;
-        const isMissingKey = data.errorCode === 'MISSING_API_KEY' || resp.status === 401 || resp.status === 403;
-        if (!isTransient || isMissingKey || attempt === 1) {
+        const isStaticNoBackend = outcome.errorCode === 'BACKEND_UNAVAILABLE';
+        const isTransient = outcome.status === 429 || outcome.status >= 500;
+        const isMissingKey =
+          outcome.errorCode === 'MISSING_API_KEY' || outcome.status === 401 || outcome.status === 403;
+        if (isStaticNoBackend || !isTransient || isMissingKey || attempt === 1) {
           return {
             ok: false,
-            status: resp.status,
-            errorCode: data.errorCode,
-            error: data.error || `Translation failed (${resp.status})`,
+            status: outcome.status,
+            errorCode: outcome.errorCode,
+            error: outcome.error || `Translation failed (${outcome.status})`,
             translatedCount: applied,
           };
         }
@@ -224,6 +227,7 @@ export function GitHubStarsPage({
       let nextIndex = 0;
       let completedCount = 0;
       let fatalStop = false;
+      let backendUnavailable = false;
       let lastFailureMsg: string | null = null;
 
       const worker = async () => {
@@ -243,13 +247,18 @@ export function GitHubStarsPage({
               });
             }
             if (!outcome.ok) {
-              lastFailureMsg = outcome.error || 'Translation request failed.';
-              if (
-                outcome.errorCode === 'MISSING_API_KEY' ||
-                outcome.status === 401 ||
-                outcome.status === 403
-              ) {
+              if (outcome.errorCode === 'BACKEND_UNAVAILABLE') {
+                backendUnavailable = true;
                 fatalStop = true;
+              } else {
+                lastFailureMsg = outcome.error || 'Translation request failed.';
+                if (
+                  outcome.errorCode === 'MISSING_API_KEY' ||
+                  outcome.status === 401 ||
+                  outcome.status === 403
+                ) {
+                  fatalStop = true;
+                }
               }
             }
           } catch (err) {
@@ -265,7 +274,7 @@ export function GitHubStarsPage({
       if (!cancelled) {
         setTranslating(false);
         setTranslationProgress(null);
-        if (lastFailureMsg) {
+        if (lastFailureMsg && !backendUnavailable) {
           setTranslationError(lastFailureMsg);
         }
       }
@@ -376,7 +385,7 @@ export function GitHubStarsPage({
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-xs text-slate-500 dark:text-slate-400">{copy.kpiRankedCount}</p>
           <p className="mt-1 font-mono text-xl font-bold tabular-nums text-slate-900 dark:text-white">
-            {loading ? '—' : `${summary.totalRepos}`}
+            {loading || summary.totalRepos === 0 ? '—' : `${summary.totalRepos}`}
           </p>
         </div>
 
@@ -545,8 +554,33 @@ export function GitHubStarsPage({
         </div>
       )}
 
+      {/* Clean Data Unavailable State (e.g., 404 / HTML maintenance response) */}
+      {!loading && (isUnavailable || (!errorMsg && items.length === 0)) && (
+        <div
+          role="status"
+          data-testid="github-stars-unavailable"
+          className="mt-6 rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900"
+        >
+          <AlertCircle className="mx-auto h-6 w-6 text-slate-500 dark:text-slate-400" aria-hidden="true" />
+          <h2 className="mt-3 text-base font-bold text-slate-900 dark:text-white">
+            {copy.dataUnavailableTitle}
+          </h2>
+          <p className="mx-auto mt-1.5 max-w-lg text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+            {copy.dataUnavailableBody}
+          </p>
+          <button
+            type="button"
+            onClick={() => void loadLeaderboard(preset, true)}
+            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+          >
+            <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>{copy.retryButton}</span>
+          </button>
+        </div>
+      )}
+
       {/* Error / Rate Limit State */}
-      {!loading && errorMsg && (
+      {!loading && !isUnavailable && errorMsg && (
         <div
           role="alert"
           className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-6 dark:border-rose-900 dark:bg-rose-950/40"
@@ -579,7 +613,7 @@ export function GitHubStarsPage({
       )}
 
       {/* Empty Filter State */}
-      {!loading && !errorMsg && items.length > 0 && filteredItems.length === 0 && (
+      {!loading && !isUnavailable && !errorMsg && items.length > 0 && filteredItems.length === 0 && (
         <div className="mt-6 rounded-xl border border-slate-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
             {copy.emptyFilteredTitle}
@@ -601,7 +635,7 @@ export function GitHubStarsPage({
       )}
 
       {/* Top 100 Leaderboard Table */}
-      {!loading && !errorMsg && filteredItems.length > 0 && (
+      {!loading && !isUnavailable && !errorMsg && filteredItems.length > 0 && (
         <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full min-w-[760px] border-collapse text-left text-sm">
             <thead>

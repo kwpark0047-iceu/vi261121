@@ -18,6 +18,7 @@ import type {
   DevelopmentPlatform,
   GitHubRepoMetadata,
   HostingProvider,
+  MobileTargetPlatform,
   PricingModel,
 } from '../types/vibeatlas';
 import {
@@ -36,6 +37,7 @@ import {
   resolveCanonicalCategoryTag,
   toggleCommaSeparatedTag,
 } from '../lib/projectTags';
+import { fetchGitHubRepoMetadata } from '../lib/githubApiClient';
 import { parseGitHubRepoSlug, sanitizeExternalUrl } from '../lib/validation';
 import {
   buildEditDraftFromProject,
@@ -47,6 +49,7 @@ import {
   type FirestoreProjectUpdatePayload,
   type ProjectEditPermissionReason,
 } from '../lib/projectEdit';
+import { MobileAppFormSection } from './MobileAppFormSection';
 import { PastelCategoryIcon } from './PastelCategoryIcon';
 
 interface EditProjectModalProps {
@@ -76,6 +79,12 @@ const EDIT_FIELD_ELEMENT_IDS: Record<EditValidationField, string> = {
   thumbnailUrl: 'edit-thumb',
   makerName: 'edit-maker',
   makerHandle: 'edit-handle',
+  mobileDemoUrl: 'edit-mobile-demo-url',
+  iosAppStoreUrl: 'edit-ios-store-url',
+  androidPlayStoreUrl: 'edit-android-store-url',
+  mobilePackageUrl: 'edit-mobile-package-url',
+  bundleId: 'edit-bundle-id',
+  minOsVersion: 'edit-min-os',
 };
 
 const DRAFT_KEY_TO_ERROR_KEY: Partial<Record<keyof EditProjectDraftFields, EditValidationField>> = {
@@ -94,6 +103,12 @@ const DRAFT_KEY_TO_ERROR_KEY: Partial<Record<keyof EditProjectDraftFields, EditV
   thumbnailUrl: 'thumbnailUrl',
   makerName: 'makerName',
   makerHandle: 'makerHandle',
+  mobileDemoUrl: 'mobileDemoUrl',
+  iosAppStoreUrl: 'iosAppStoreUrl',
+  androidPlayStoreUrl: 'androidPlayStoreUrl',
+  mobilePackageUrl: 'mobilePackageUrl',
+  mobileBundleId: 'bundleId',
+  mobileMinOsVersion: 'minOsVersion',
 };
 
 export function EditProjectModal({
@@ -132,6 +147,16 @@ export function EditProjectModal({
           thumbnailUrl: '',
           makerName: '',
           makerHandle: '',
+          enableMobileDemo: false,
+          mobilePlatforms: ['ios', 'android'],
+          mobileDemoUrl: '',
+          iosAppStoreUrl: '',
+          androidPlayStoreUrl: '',
+          mobilePackageUrl: '',
+          mobileBundleId: '',
+          mobileMinOsVersion: '',
+          mobileDevicePreset: 'iphone_16',
+          mobileOrientation: 'portrait',
         }
   );
 
@@ -173,7 +198,20 @@ export function EditProjectModal({
 
   const updateField = useCallback(
     <K extends keyof EditProjectDraftFields>(key: K, value: EditProjectDraftFields[K]) => {
-      setDraft((prev) => ({ ...prev, [key]: value }));
+      setDraft((prev) => {
+        const next: EditProjectDraftFields = { ...prev, [key]: value };
+        if (key === 'contentType' && value === 'mobile_app') {
+          next.enableMobileDemo = true;
+          const existingTags = parseCommaSeparatedTags(prev.categoriesRaw);
+          const hasMobileCategory = existingTags.some(
+            (t) => (resolveCanonicalCategoryTag(t) ?? t).toLowerCase() === 'mobile app'
+          );
+          if (!hasMobileCategory && existingTags.length < 6) {
+            next.categoriesRaw = [...existingTags, 'Mobile App'].join(', ');
+          }
+        }
+        return next;
+      });
       if (key === 'thumbnailUrl') {
         setThumbPreviewError(false);
       }
@@ -211,13 +249,7 @@ export function EditProjectModal({
 
     setFetchingGh(true);
     try {
-      const resp = await fetch(`/api/github/repo?repo=${encodeURIComponent(slug)}`);
-      const data = await resp.json();
-      if (!resp.ok || !data.repo) {
-        setGhFeedback(data.error || 'GitHub 조회에 실패했습니다.');
-        return;
-      }
-      const repo = data.repo as GitHubRepoMetadata;
+      const repo = await fetchGitHubRepoMetadata(slug);
       setGhMeta(repo);
       setDraft((prev) => ({
         ...prev,
@@ -954,6 +986,31 @@ export function EditProjectModal({
                   )}
                 </div>
               </div>
+
+              <MobileAppFormSection
+                language={language}
+                idPrefix="edit"
+                values={{
+                  contentType: draft.contentType,
+                  enableMobileDemo: draft.enableMobileDemo,
+                  mobilePlatforms: draft.mobilePlatforms,
+                  mobileDemoUrl: draft.mobileDemoUrl,
+                  iosAppStoreUrl: draft.iosAppStoreUrl,
+                  androidPlayStoreUrl: draft.androidPlayStoreUrl,
+                  mobilePackageUrl: draft.mobilePackageUrl,
+                  mobileBundleId: draft.mobileBundleId,
+                  mobileMinOsVersion: draft.mobileMinOsVersion,
+                  mobileDevicePreset: draft.mobileDevicePreset,
+                  mobileOrientation: draft.mobileOrientation,
+                  techStackRaw: draft.techStackRaw,
+                }}
+                fieldErrors={fieldErrors}
+                onToggleEnable={(enabled) => updateField('enableMobileDemo', enabled)}
+                onChangePlatforms={(platforms: MobileTargetPlatform[]) =>
+                  updateField('mobilePlatforms', platforms)
+                }
+                onChangeField={(field, val) => updateField(field, val)}
+              />
 
               <div>
                 <label

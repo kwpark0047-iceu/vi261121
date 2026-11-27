@@ -6,15 +6,19 @@ import {
   Check,
   CheckCircle2,
   Copy,
+  Download,
   ExternalLink,
   Flag,
   GitFork,
   Heart,
   HelpCircle,
   Link2,
+  Package,
   Pencil,
   RefreshCw,
+  RotateCw,
   ShieldCheck,
+  Smartphone,
   Star,
   X,
 } from 'lucide-react';
@@ -22,6 +26,7 @@ import type { User } from 'firebase/auth';
 import type {
   AppLanguage,
   CatalogProject,
+  MobileDemoOrientation,
   OwnershipClaimRecord,
   ProjectActivityRecord,
   ProjectMilestoneRecord,
@@ -60,7 +65,14 @@ import {
 } from '../lib/projectHighlightBadges';
 import { playUiSound } from '../lib/soundEffects';
 import { buildProjectShareUrl, buildPromotionCopy } from '../lib/submissionPromotion';
+import {
+  extractMobileStoreLinks,
+  getSmartphoneAspectSpec,
+  hasMobileDemoSupport,
+  resolveProjectDemoIframeUrl,
+} from '../lib/mobileAppDemo';
 import { MakerTrustPanel, MakerVerificationBadge } from './MakerVerificationBadge';
+import { MobileDeviceDemoViewer } from './MobileDeviceDemoViewer';
 import { PastelCategoryIcon } from './PastelCategoryIcon';
 import { ProjectCommunityActivity } from './ProjectCommunityActivity';
 import { ProjectGrowthChart } from './ProjectGrowthChart';
@@ -68,6 +80,7 @@ import { ProjectHighlightBadges } from './ProjectHighlightBadges';
 import { ProjectInsightsDashboard } from './ProjectInsightsDashboard';
 import { ProjectMilestoneTimeline } from './ProjectMilestoneTimeline';
 import { ResilientProjectImage } from './ResilientProjectImage';
+import { StarGrowthModalChart } from './StarGrowthModalChart';
 import { VibeScoreGauge } from './VibeScoreGauge';
 import { VibeVolatilityTrendChart } from './VibeVolatilityTrendChart';
 
@@ -101,6 +114,7 @@ interface ProjectDetailModalProps {
   onSelectTag?: (tag: string) => void;
   onEditProject?: (project: CatalogProject) => void;
   editSuccessMessage?: string | null;
+  snapshotRevision?: number;
 }
 
 export function ProjectDetailModal({
@@ -125,6 +139,7 @@ export function ProjectDetailModal({
   onSelectTag,
   onEditProject,
   editSuccessMessage = null,
+  snapshotRevision = 0,
 }: ProjectDetailModalProps) {
   const [activeActionForm, setActiveActionForm] = useState<'none' | 'report' | 'claim'>('none');
   const [reportReason, setReportReason] =
@@ -142,6 +157,11 @@ export function ProjectDetailModal({
   const [creatorMilestones, setCreatorMilestones] = useState<ProjectMilestoneRecord[]>([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
   const [promoCopied, setPromoCopied] = useState<'none' | 'link' | 'pitch'>('none');
+  const [mobileViewOpen, setMobileViewOpen] = useState(false);
+  const [mobileViewOrientation, setMobileViewOrientation] =
+    useState<MobileDemoOrientation>('portrait');
+  const [mobileIframeLoaded, setMobileIframeLoaded] = useState(false);
+  const [viewerMode, setViewerMode] = useState<'card' | 'iframe'>('card');
 
   useEffect(() => {
     if (promoCopied === 'none') return;
@@ -164,6 +184,10 @@ export function ProjectDetailModal({
     setFormError(null);
     setReportDetails('');
     setClaimProof('');
+    setMobileViewOpen(false);
+    setMobileViewOrientation('portrait');
+    setMobileIframeLoaded(false);
+    setViewerMode('card');
   }, [project?.id]);
 
   useEffect(() => {
@@ -222,7 +246,7 @@ export function ProjectDetailModal({
       localActivities,
       userReports,
       currentUserLabel: user
-        ? { uid: user.uid, name: user.displayName || 'VibeAtlas Member', handle: '' }
+        ? { uid: user.uid, name: user.displayName || 'W-Vibe Member', handle: '' }
         : null,
     });
   }, [project, firestoreActivities, localActivities, userReports, user]);
@@ -236,11 +260,19 @@ export function ProjectDetailModal({
 
   const copy = UI_STRINGS[language].detail;
   const cardCopy = UI_STRINGS[language].card;
+  const mobileDemoCopy = UI_STRINGS[language].mobileDemo;
   const missing = detectMissingFields(project);
   const freshness = computeFreshnessState(project.lastSyncedAt);
   const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
+  const demoIframeUrl = resolveProjectDemoIframeUrl(project);
   const safeWebsite = sanitizeExternalUrl(project.websiteUrl);
   const safeGithub = sanitizeExternalUrl(project.githubUrl);
+  const showMobileDemoViewer = hasMobileDemoSupport(project);
+  const mobileAspectSpec = getSmartphoneAspectSpec(mobileViewOrientation);
+  const isMobileViewActive = showMobileDemoViewer ? viewerMode === 'iframe' : mobileViewOpen;
+  const mobileStoreLinks = extractMobileStoreLinks(project).filter(
+    (link) => link.url !== safeDemo
+  );
   const fullDesc =
     language === 'ko' && project.descriptionKo ? project.descriptionKo : project.description;
   const tagline = language === 'ko' && project.taglineKo ? project.taglineKo : project.tagline;
@@ -397,8 +429,185 @@ export function ProjectDetailModal({
               <p className="mt-2.5 whitespace-pre-line text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {fullDesc}
               </p>
+
+              {demoIframeUrl && (
+                <div className="mt-4 flex flex-wrap items-center gap-2.5">
+                  <button
+                    type="button"
+                    data-testid="detail-mobile-view-toggle"
+                    aria-pressed={isMobileViewActive}
+                    onClick={() => {
+                      playUiSound('tap');
+                      if (showMobileDemoViewer) {
+                        const nextMode = viewerMode === 'iframe' ? 'card' : 'iframe';
+                        setViewerMode(nextMode);
+                        if (nextMode === 'iframe') {
+                          window.requestAnimationFrame(() => {
+                            document
+                              .querySelector('[data-testid="mobile-device-demo-viewer"]')
+                              ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          });
+                        }
+                      } else {
+                        setMobileIframeLoaded(false);
+                        setMobileViewOpen((prev) => !prev);
+                      }
+                    }}
+                    className={`inline-flex min-h-[38px] items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
+                      isMobileViewActive
+                        ? 'border-cyan-600 bg-cyan-700 text-white hover:bg-cyan-800 dark:border-cyan-500 dark:bg-cyan-600 dark:hover:bg-cyan-500'
+                        : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Smartphone className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>{copy.mobileViewToggle}</span>
+                  </button>
+
+                  <a
+                    href={demoIframeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[38px] items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    <span>{copy.liveDemo}</span>
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Mobile View Smartphone Frame (for non-mobile-app projects with a Demo URL) */}
+          {mobileViewOpen && !showMobileDemoViewer && demoIframeUrl && (
+            <section
+              data-testid="detail-mobile-view-panel"
+              className="rounded-2xl border border-cyan-200/80 bg-gradient-to-br from-cyan-50/40 via-white to-slate-50 p-4 sm:p-5 dark:border-cyan-900/60 dark:from-slate-900 dark:via-slate-950 dark:to-cyan-950/20"
+            >
+              <div className="flex flex-col gap-3 border-b border-slate-200/80 pb-3.5 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800">
+                <div className="flex min-w-0 items-start gap-2.5">
+                  <PastelCategoryIcon contentType="mobile_app" size="sm" animated={false} />
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                        {copy.mobileViewTitle}
+                      </h3>
+                      <span className="font-mono text-[11px] font-medium text-cyan-700 dark:text-cyan-400">
+                        {mobileAspectSpec.viewportWidth}×{mobileAspectSpec.viewportHeight} ·{' '}
+                        {mobileAspectSpec.ratioLabel}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {copy.mobileViewSubtitle}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:flex-nowrap">
+                  <button
+                    type="button"
+                    data-testid="detail-mobile-view-rotate"
+                    aria-pressed={mobileViewOrientation === 'landscape'}
+                    onClick={() => {
+                      playUiSound('tap');
+                      setMobileViewOrientation((prev) =>
+                        prev === 'portrait' ? 'landscape' : 'portrait'
+                      );
+                    }}
+                    className="inline-flex min-h-[36px] items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>
+                      {mobileViewOrientation === 'portrait'
+                        ? mobileDemoCopy.orientationPortrait
+                        : mobileDemoCopy.orientationLandscape}
+                    </span>
+                  </button>
+
+                  <a
+                    href={demoIframeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[36px] items-center gap-1.5 whitespace-nowrap rounded-xl bg-slate-900 px-3 text-xs font-semibold text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                  >
+                    <span>{mobileDemoCopy.openExternalButton}</span>
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                  </a>
+
+                  <button
+                    type="button"
+                    aria-label={copy.mobileViewClose}
+                    onClick={() => {
+                      playUiSound('tap');
+                      setMobileViewOpen(false);
+                    }}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 flex justify-center">
+                <div
+                  data-testid="detail-mobile-view-frame"
+                  data-orientation={mobileViewOrientation}
+                  className={`w-full rounded-[38px] border-[6px] border-slate-800 bg-slate-950 p-1.5 shadow-xl transition-all dark:border-slate-700 ${
+                    mobileViewOrientation === 'portrait'
+                      ? 'max-w-[276px] sm:max-w-[292px]'
+                      : 'max-w-[540px]'
+                  }`}
+                >
+                  <div
+                    data-testid="detail-mobile-view-screen"
+                    className={`relative flex w-full flex-col overflow-hidden rounded-[30px] bg-white dark:bg-slate-900 ${mobileAspectSpec.aspectClass}`}
+                  >
+                    {/* Smartphone Status Bar & Dynamic Island */}
+                    <div className="relative flex shrink-0 items-center justify-between border-b border-slate-100 bg-white/95 px-5 pt-2.5 pb-1.5 text-[10px] font-semibold text-slate-800 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                      <span className="font-mono tabular-nums">9:41</span>
+                      <span
+                        aria-hidden="true"
+                        className="h-3.5 w-20 rounded-full bg-slate-900 dark:bg-black"
+                      />
+                      <span className="font-mono text-[9px] text-slate-500 dark:text-slate-400">
+                        {mobileAspectSpec.ratioLabel}
+                      </span>
+                    </div>
+
+                    {!mobileIframeLoaded && (
+                      <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-3 py-1.5 text-[10px] text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
+                        <span className="truncate">{mobileDemoCopy.iframeFallbackNotice}</span>
+                        <a
+                          href={demoIframeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 font-semibold underline"
+                        >
+                          {mobileDemoCopy.openExternalButton}
+                        </a>
+                      </div>
+                    )}
+
+                    <iframe
+                      data-testid="detail-mobile-view-iframe"
+                      title={`${project.name} ${copy.mobileViewToggle}`}
+                      src={demoIframeUrl}
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      onLoad={() => setMobileIframeLoaded(true)}
+                      className="h-full w-full flex-1 border-0 bg-white"
+                    />
+
+                    {/* Smartphone Home Gesture Bar */}
+                    <div className="flex shrink-0 justify-center bg-white py-1.5 dark:bg-slate-950">
+                      <span
+                        aria-hidden="true"
+                        className="h-1 w-20 rounded-full bg-slate-300 dark:bg-slate-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* Separated Metric Summary (Never Blended!) */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -515,6 +724,25 @@ export function ProjectDetailModal({
             </form>
           )}
 
+          {/* Interactive Mobile Device Demo & QR Viewer */}
+          {showMobileDemoViewer && (
+            <MobileDeviceDemoViewer
+              project={project}
+              language={language}
+              mode={viewerMode}
+              onModeChange={setViewerMode}
+            />
+          )}
+
+          {/* Recharts Star Growth Historical Snapshot Chart */}
+          <StarGrowthModalChart
+            project={project}
+            language={language}
+            isSyncing={isSyncing}
+            snapshotRevision={snapshotRevision}
+            onSyncSingleGithub={onSyncSingleGithub}
+          />
+
           {/* Project Insights Dashboard (D3 7-Day Likes & Bookmarks Trend) */}
           <ProjectInsightsDashboard
             project={project}
@@ -588,7 +816,22 @@ export function ProjectDetailModal({
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 )}
-                {!safeDemo && !safeWebsite && !safeGithub && (
+                {mobileStoreLinks.map((item) => (
+                  <a
+                    key={`${item.kind}-${item.url}`}
+                    href={item.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200 bg-cyan-50/70 px-3.5 py-2 text-xs font-semibold text-cyan-900 hover:bg-cyan-100/70 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-200 dark:hover:bg-cyan-950/70"
+                  >
+                    {item.kind === 'ios' && <Smartphone className="h-3.5 w-3.5" />}
+                    {item.kind === 'android' && <Download className="h-3.5 w-3.5" />}
+                    {item.kind === 'package' && <Package className="h-3.5 w-3.5" />}
+                    <span>{item.providerBadge}</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ))}
+                {!safeDemo && !safeWebsite && !safeGithub && mobileStoreLinks.length === 0 && (
                   <p className="text-xs text-slate-500 dark:text-slate-400">No verified URLs listed.</p>
                 )}
               </div>

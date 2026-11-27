@@ -10,6 +10,7 @@ import {
   Layers,
   LayoutGrid,
   LayoutTemplate,
+  Smartphone,
   Sparkles,
   Terminal,
   Wrench,
@@ -43,6 +44,8 @@ function renderTabIcon(tabId: DiscoverCategoryTabId, className: string) {
       return <Wrench className={className} aria-hidden="true" />;
     case 'web_app':
       return <Globe className={className} aria-hidden="true" />;
+    case 'mobile_app':
+      return <Smartphone className={className} aria-hidden="true" />;
     case 'ai_skills':
       return <Sparkles className={className} aria-hidden="true" />;
     case 'workflow':

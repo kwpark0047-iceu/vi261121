@@ -38,7 +38,13 @@ export function buildPromotedSubmissionEntry(project: CatalogProject): PromotedS
   const isLiveUserSubmission = project.isCuratedSeed === false;
   const isMakerSubmitted =
     isLiveUserSubmission || project.provenanceSource === 'maker_submitted';
-  const hasLiveDemo = Boolean(sanitizeExternalUrl(project.liveDemoUrl));
+  const hasLiveDemo = Boolean(
+    sanitizeExternalUrl(project.liveDemoUrl) ||
+      sanitizeExternalUrl(project.mobileConfig?.mobileDemoUrl || '') ||
+      sanitizeExternalUrl(project.mobileConfig?.iosAppStoreUrl || '') ||
+      sanitizeExternalUrl(project.mobileConfig?.androidPlayStoreUrl || '') ||
+      sanitizeExternalUrl(project.mobileConfig?.mobilePackageUrl || '')
+  );
   const hasWebsite = Boolean(sanitizeExternalUrl(project.websiteUrl));
   const hasGithubRepo = Boolean(project.githubRepo.trim() || sanitizeExternalUrl(project.githubUrl));
   const hasBilingualCopy = Boolean(project.tagline.trim() && project.taglineKo.trim());
@@ -132,19 +138,30 @@ export function buildPromotionCopy(
   const makerLabel = project.makerHandle.trim()
     ? `${project.makerName} (${project.makerHandle.trim()})`
     : project.makerName;
-  const safeDemo = sanitizeExternalUrl(project.liveDemoUrl);
+  const safeDemo =
+    sanitizeExternalUrl(project.mobileConfig?.mobileDemoUrl || '') ||
+    sanitizeExternalUrl(project.liveDemoUrl);
+  const safeIos = sanitizeExternalUrl(project.mobileConfig?.iosAppStoreUrl || '');
+  const safeAndroid = sanitizeExternalUrl(project.mobileConfig?.androidPlayStoreUrl || '');
+  const mobilePlatforms = project.mobileConfig?.platforms?.length
+    ? project.mobileConfig.platforms.map((p) => p.toUpperCase()).join(' / ')
+    : '';
 
   if (language === 'ko') {
     if (tone === 'social') {
       const stackPart = stackLine ? `\n스택: ${stackLine}` : '';
-      return `${project.name} — ${tagline}${stackPart}\n만든이: ${makerLabel}\n지금 VibeAtlas에서 확인하기: ${shareUrl}`;
+      const mobilePart = mobilePlatforms ? `\n모바일 지원: ${mobilePlatforms}` : '';
+      return `${project.name} — ${tagline}${stackPart}${mobilePart}\n만든이: ${makerLabel}\n지금 W-Vibe에서 확인하기: ${shareUrl}`;
     }
     const lines = [
       `[프로젝트 소개] ${project.name}`,
       tagline,
+      mobilePlatforms ? `• 지원 모바일 OS: ${mobilePlatforms}` : '',
       stackLine ? `• 주요 스택: ${stackLine}` : '',
       `• 메이커: ${makerLabel}`,
       safeDemo ? `• 라이브 데모: ${safeDemo}` : '',
+      safeIos ? `• App Store / TestFlight: ${safeIos}` : '',
+      safeAndroid ? `• Google Play: ${safeAndroid}` : '',
       `• 상세 정보 & 피드백: ${shareUrl}`,
     ].filter(Boolean);
     return lines.join('\n');
@@ -153,14 +170,18 @@ export function buildPromotionCopy(
   if (language === 'zh') {
     if (tone === 'social') {
       const stackPart = stackLine ? `\n技术栈：${stackLine}` : '';
-      return `${project.name} — ${tagline}${stackPart}\n创作者：${makerLabel}\n在 VibeAtlas 查看详情：${shareUrl}`;
+      const mobilePart = mobilePlatforms ? `\n支持平台：${mobilePlatforms}` : '';
+      return `${project.name} — ${tagline}${stackPart}${mobilePart}\n创作者：${makerLabel}\n在 W-Vibe 查看详情：${shareUrl}`;
     }
     const lines = [
       `[项目推介] ${project.name}`,
       tagline,
+      mobilePlatforms ? `• 支持平台：${mobilePlatforms}` : '',
       stackLine ? `• 核心技术栈：${stackLine}` : '',
       `• 创作者：${makerLabel}`,
       safeDemo ? `• 在线演示：${safeDemo}` : '',
+      safeIos ? `• App Store / TestFlight：${safeIos}` : '',
+      safeAndroid ? `• Google Play：${safeAndroid}` : '',
       `• 详情与社区评价：${shareUrl}`,
     ].filter(Boolean);
     return lines.join('\n');
@@ -169,14 +190,18 @@ export function buildPromotionCopy(
   if (language === 'ja') {
     if (tone === 'social') {
       const stackPart = stackLine ? `\nスタック: ${stackLine}` : '';
-      return `${project.name} — ${tagline}${stackPart}\nメイカー: ${makerLabel}\nVibeAtlas で詳細を見る: ${shareUrl}`;
+      const mobilePart = mobilePlatforms ? `\n対応OS: ${mobilePlatforms}` : '';
+      return `${project.name} — ${tagline}${stackPart}${mobilePart}\nメイカー: ${makerLabel}\nW-Vibe で詳細を見る: ${shareUrl}`;
     }
     const lines = [
       `[プロジェクト紹介] ${project.name}`,
       tagline,
+      mobilePlatforms ? `• 対応モバイルOS: ${mobilePlatforms}` : '',
       stackLine ? `• 主な技術スタック: ${stackLine}` : '',
       `• メイカー: ${makerLabel}`,
       safeDemo ? `• ライブデモ: ${safeDemo}` : '',
+      safeIos ? `• App Store / TestFlight: ${safeIos}` : '',
+      safeAndroid ? `• Google Play: ${safeAndroid}` : '',
       `• 詳細とフィードバック: ${shareUrl}`,
     ].filter(Boolean);
     return lines.join('\n');
@@ -185,14 +210,18 @@ export function buildPromotionCopy(
   // English default
   if (tone === 'social') {
     const stackPart = stackLine ? `\nStack: ${stackLine}` : '';
-    return `${project.name} — ${tagline}${stackPart}\nBy ${makerLabel}\nExplore on VibeAtlas: ${shareUrl}`;
+    const mobilePart = mobilePlatforms ? `\nMobile: ${mobilePlatforms}` : '';
+    return `${project.name} — ${tagline}${stackPart}${mobilePart}\nBy ${makerLabel}\nExplore on W-Vibe: ${shareUrl}`;
   }
   const lines = [
     `[Launch Showcase] ${project.name}`,
     tagline,
+    mobilePlatforms ? `• Mobile Platforms: ${mobilePlatforms}` : '',
     stackLine ? `• Stack: ${stackLine}` : '',
     `• Maker: ${makerLabel}`,
     safeDemo ? `• Live Demo: ${safeDemo}` : '',
+    safeIos ? `• App Store / TestFlight: ${safeIos}` : '',
+    safeAndroid ? `• Google Play: ${safeAndroid}` : '',
     `• Full Profile & Health Score: ${shareUrl}`,
   ].filter(Boolean);
   return lines.join('\n');
